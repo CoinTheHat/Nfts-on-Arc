@@ -106,7 +106,7 @@ export default function CreateProject() {
                 const { createWalletClient, custom, walletActions } = await import("viem");
                 const nuclear = createWalletClient({ account: address as `0x${string}`, chain: arcTestnet, transport: custom((window as any).ethereum) }).extend(walletActions);
                 try { await nuclear.switchChain({ id: arcTestnet.id }); } catch (e) { }
-                client = nuclear;
+                client = nuclear as any;
             }
 
             if (!client) throw new Error("Wallet connection failed. Please try reconnecting.");

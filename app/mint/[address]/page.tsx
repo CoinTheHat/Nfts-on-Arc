@@ -34,10 +34,11 @@ export default function MintPage() {
             { ...contractConfig, functionName: "totalMinted" },
             { ...contractConfig, functionName: "mintPrice" },
             { ...contractConfig, functionName: "collectionURI" },
+            { ...contractConfig, functionName: "owner" },
         ],
     });
 
-    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI] = contractData || [];
+    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI, owner] = contractData || [];
 
     useEffect(() => {
         if (isConfirmed) {
@@ -122,6 +123,26 @@ export default function MintPage() {
                                     e.currentTarget.style.display = 'none';
                                 }}
                             />
+                        </div>
+                    )}
+
+                    {/* Creator Info */}
+                    {owner?.status === "success" && (
+                        <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-400">
+                            <span>Created by:</span>
+                            <code className="bg-gray-800 px-3 py-1 rounded font-mono text-blue-400">
+                                {String(owner.result).slice(0, 6)}...{String(owner.result).slice(-4)}
+                            </code>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(String(owner.result));
+                                    alert("Address copied!");
+                                }}
+                                className="text-gray-500 hover:text-white transition-colors"
+                                title="Copy address"
+                            >
+                                📋
+                            </button>
                         </div>
                     )}
 

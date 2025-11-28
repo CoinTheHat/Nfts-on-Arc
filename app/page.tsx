@@ -33,6 +33,15 @@ export default function Home() {
     })),
   });
 
+  // 4. Bulk fetch collectionURIs (image URLs)
+  const { data: collectionURIs } = useReadContracts({
+    contracts: collectionsToDisplay.map((addr) => ({
+      address: addr,
+      abi: NFTCollectionArtifact.abi as unknown as Abi,
+      functionName: "collectionURI",
+    })),
+  });
+
   return (
     <Layout>
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -73,14 +82,30 @@ export default function Home() {
               const nameData = collectionNames?.[index];
               const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
 
+              const uriData = collectionURIs?.[index];
+              const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
+
               return (
                 <Link
                   key={addr}
                   href={`/mint/${addr}`}
                   className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-2xl p-6 transition-all hover:-translate-y-1 group"
                 >
-                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center text-4xl group-hover:scale-105 transition-transform">
-                    🎨
+                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl">🎨</span>';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-4xl">🎨</span>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
                   <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>

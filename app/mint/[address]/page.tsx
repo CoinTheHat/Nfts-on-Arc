@@ -33,10 +33,11 @@ export default function MintPage() {
             { ...contractConfig, functionName: "maxSupply" },
             { ...contractConfig, functionName: "totalMinted" },
             { ...contractConfig, functionName: "mintPrice" },
+            { ...contractConfig, functionName: "collectionURI" },
         ],
     });
 
-    const [name, symbol, maxSupply, totalMinted, mintPrice] = contractData || [];
+    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI] = contractData || [];
 
     useEffect(() => {
         if (isConfirmed) {
@@ -95,6 +96,20 @@ export default function MintPage() {
                         )}
                     </div>
 
+                    {/* Collection Image */}
+                    {collectionURI?.status === "success" && String(collectionURI.result) && (
+                        <div className="mb-8 rounded-xl overflow-hidden">
+                            <img
+                                src={String(collectionURI.result)}
+                                alt={name?.status === "success" ? String(name.result) : "NFT Collection"}
+                                className="w-full h-64 object-cover"
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                            />
+                        </div>
+                    )}
+
                     {/* Progress Bar */}
                     <div className="mb-8">
                         <div className="flex justify-between text-sm font-medium text-gray-400 mb-2">
@@ -139,10 +154,10 @@ export default function MintPage() {
                                 onClick={handleMint}
                                 disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result)}
                                 className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut
-                                        ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                                        : isWritePending || isConfirming
-                                            ? "bg-blue-600/50 text-white cursor-wait"
-                                            : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
+                                    ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+                                    : isWritePending || isConfirming
+                                        ? "bg-blue-600/50 text-white cursor-wait"
+                                        : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
                                     }`}
                             >
                                 {isSoldOut

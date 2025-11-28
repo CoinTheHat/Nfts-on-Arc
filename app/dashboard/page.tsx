@@ -36,12 +36,29 @@ export default function Dashboard() {
         })),
     });
 
-    // Filter collections owned by current user
+    // Check user's balance for ALL collections (to find minted NFTs)
+    const { data: balances } = useReadContracts({
+        contracts: collections.map((addr) => ({
+            address: addr as `0x${string}`,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "balanceOf",
+            args: [address],
+        })),
+    });
+
+    // Filter collections owned by current user (created by them)
     const myCollections = collections.map((addr, index) => ({
         address: addr,
         owner: owners?.[index]?.result,
         name: names?.[index]?.result,
     })).filter(c => c.owner === address);
+
+    // Filter collections where user has minted at least one NFT
+    const mintedCollections = collections.map((addr, index) => ({
+        address: addr,
+        name: names?.[index]?.result,
+        balance: balances?.[index]?.result as bigint | undefined,
+    })).filter(c => c.balance && c.balance > 0n);
 
     if (!isConnected) {
         return (
@@ -84,6 +101,30 @@ export default function Dashboard() {
                         ))}
                     </div>
                 )}
+
+                {/* Minted NFTs Section */}
+                <div className="mt-16">
+                    <h2 className="text-2xl font-bold mb-6">My Minted NFTs</h2>
+                    {mintedCollections.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-900/50 rounded-2xl border border-gray-800">
+                            <p className="text-gray-400">You haven't minted any NFTs yet.</p>
+                        </div>
+                    ) : (
+                        <div className="grid md:grid-cols-4 gap-4">
+                            {mintedCollections.map((col) => (
+                                <Link key={col.address} href={`/mint/${col.address}`} className="block group">
+                                    <div className="bg-gray-900/50 border border-gray-800 group-hover:border-purple-500/50 rounded-xl p-4 transition-all">
+                                        <div className="h-24 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg mb-3 flex items-center justify-center text-3xl">
+                                            🖼️
+                                        </div>
+                                        <h4 className="font-bold text-sm mb-1 truncate">{String(col.name || "Untitled")}</h4>
+                                        <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </Layout>
     );

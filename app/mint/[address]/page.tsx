@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import { arcTestnet } from "@/lib/arcChain";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import Link from "next/link";
+import { useUsername, formatAddress } from "@/lib/useUsername";
 
 export default function MintPage() {
     const params = useParams();
@@ -71,6 +72,10 @@ export default function MintPage() {
 
     const priceFormatted = mintPrice?.result ? formatEther(mintPrice.result as bigint) : "0";
 
+    // Fetch username for collection owner
+    const ownerAddress = owner?.result as string | undefined;
+    const { username: ownerUsername } = useUsername(ownerAddress);
+
     // Debug logging
     console.log("🔍 Debug Info:", {
         isConnected,
@@ -133,7 +138,7 @@ export default function MintPage() {
                         <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-400">
                             <span>Created by:</span>
                             <code className="bg-gray-800 px-3 py-1 rounded font-mono text-blue-400">
-                                {String(owner.result).slice(0, 6)}...{String(owner.result).slice(-4)}
+                                {formatAddress(String(owner.result), ownerUsername)}
                             </code>
                             <button
                                 onClick={() => {

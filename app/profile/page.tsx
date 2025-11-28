@@ -9,6 +9,8 @@ export default function ProfilePage() {
     const { address, isConnected } = useAccount();
     const [username, setUsername] = useState("");
     const [bio, setBio] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState("");
+    const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
@@ -32,11 +34,38 @@ export default function ProfilePage() {
             if (data) {
                 setUsername(data.username || "");
                 setBio(data.bio || "");
+                setAvatarUrl(data.avatar_url || "");
             }
         } catch (e) {
             console.log("No profile yet");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                setAvatarUrl(data.url);
+                setMessage("✅ Avatar uploaded!");
+            }
+        } catch (e) {
+            setMessage("❌ Upload failed");
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -56,6 +85,7 @@ export default function ProfilePage() {
                     wallet_address: address.toLowerCase(),
                     username: username.trim(),
                     bio: bio.trim(),
+                    avatar_url: avatarUrl,
                 }, { onConflict: "wallet_address" });
 
             if (error) throw error;
@@ -87,6 +117,31 @@ export default function ProfilePage() {
                     <p className="text-gray-400">Loading...</p>
                 ) : (
                     <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
+                        {/* Avatar Upload */}
+                        <div className="mb-8 flex flex-col items-center">
+                            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-800 mb-4">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-4xl">
+                                        👤
+                                    </div>
+                                )}
+                            </div>
+                            <label className="cursor-pointer">
+                                <span className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors">
+                                    {uploading ? "Uploading..." : "Change Avatar"}
+                                </span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                            </label>
+                        </div>
+
                         <div className="mb-6">
                             <label className="block text-sm font-bold mb-2">Username *</label>
                             <input

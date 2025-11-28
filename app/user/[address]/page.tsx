@@ -84,7 +84,7 @@ export default function UserProfilePage() {
             name: names?.[index]?.result,
             owner: owners?.[index]?.result,
         }))
-        .filter((c) => c.owner?.toLowerCase() === address.toLowerCase());
+        .filter((c) => (c.owner as string)?.toLowerCase() === address.toLowerCase());
 
     // Minted NFTs
     const mintedCollections = collections

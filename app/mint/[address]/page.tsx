@@ -135,14 +135,13 @@ export default function MintPage() {
 
                     {/* Creator Info */}
                     {owner?.status === "success" && (
-                        <Link href={`/user/${owner.result}`} className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group">
+                        <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-400">
                             <span>Created by:</span>
-                            <code className="bg-gray-800 px-3 py-1 rounded font-mono text-blue-400 group-hover:text-blue-300">
+                            <Link href={`/user/${owner.result}`} className="bg-gray-800 px-3 py-1 rounded font-mono text-blue-400 hover:text-blue-300 transition-colors">
                                 {formatAddress(String(owner.result), ownerUsername)}
-                            </code>
+                            </Link>
                             <button
-                                onClick={(e) => {
-                                    e.preventDefault();
+                                onClick={() => {
                                     navigator.clipboard.writeText(String(owner.result));
                                     alert("Address copied!");
                                 }}
@@ -151,7 +150,7 @@ export default function MintPage() {
                             >
                                 📋
                             </button>
-                        </Link>
+                        </div>
                     )}
 
                     {/* Progress Bar */}

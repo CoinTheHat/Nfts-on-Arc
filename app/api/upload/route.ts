@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
         }
 
         const buffer = await file.arrayBuffer();
-        const filename = Date.now() + "_" + file.name.replace(/\s/g, "_");
+        // Generate safe filename - remove all special chars
+        const ext = file.name.split('.').pop() || 'png';
+        const filename = `${Date.now()}_upload.${ext}`;
 
         console.log("Uploading file:", filename);
 

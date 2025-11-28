@@ -6,20 +6,26 @@ import Layout from "@/components/Layout";
 import Link from "next/link";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { factoryAddress } from "@/lib/factoryAddress";
+import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
 
 import { Abi } from "viem";
 
 export default function Home() {
-  // 1. Read all collections from Factory
-  const { data: allCollections } = useReadContract({
-    address: factoryAddress as `0x${string}`,
-    abi: NFTFactoryArtifact.abi as unknown as Abi,
-    functionName: "getAllCollections",
+  // Fetch collections from ALL factories
+  const { data: allFactoriesData } = useReadContracts({
+    contracts: factoryAddresses.map((factoryAddr) => ({
+      address: factoryAddr as `0x${string}`,
+      abi: NFTFactoryArtifact.abi as unknown as Abi,
+      functionName: "getAllCollections",
+    })),
   });
 
+  // Combine all collections from all factories
+  const allCollections = (allFactoriesData || [])
+    .flatMap((result) => result.status === "success" ? result.result as string[] : []);
+
   // 2. Prepare to fetch metadata for the last 6 collections (newest first)
-  const collectionsToDisplay = (allCollections as string[] || [])
+  const collectionsToDisplay = (allCollections || [])
     .slice()
     .reverse()
     .slice(0, 6) as `0x${string}`[];

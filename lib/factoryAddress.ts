@@ -1,1 +1,1 @@
-export const factoryAddress = "0x15b6F4E8d9E1Eb506526392a66b02be6B65Cf62a"; // Final Factory (Dashboard + Airdrop + Fixes)
+export const factoryAddress = "0x1Fc0F18C7b86844F2293227d9a1CC5754E491e13"; // Factory with maxPerWallet support

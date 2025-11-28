@@ -35,10 +35,12 @@ export default function MintPage() {
             { ...contractConfig, functionName: "mintPrice" },
             { ...contractConfig, functionName: "collectionURI" },
             { ...contractConfig, functionName: "owner" },
+            { ...contractConfig, functionName: "maxPerWallet" },
+            { ...contractConfig, functionName: "balanceOf", args: [address] },
         ],
     });
 
-    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI, owner] = contractData || [];
+    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI, owner, maxPerWallet, userBalance] = contractData || [];
 
     useEffect(() => {
         if (isConfirmed) {
@@ -188,21 +190,23 @@ export default function MintPage() {
                         ) : (
                             <button
                                 onClick={handleMint}
-                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result)}
-                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut
+                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || (userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))}
+                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || (userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))
                                     ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                                     : isWritePending || isConfirming
                                         ? "bg-blue-600/50 text-white cursor-wait"
                                         : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
                                     }`}
                             >
-                                {isSoldOut
-                                    ? "Sold Out"
-                                    : isWritePending
-                                        ? "Confirm in Wallet..."
-                                        : isConfirming
-                                            ? "Minting..."
-                                            : `Mint (${priceFormatted === "0" ? "Free" : `${priceFormatted} USDC`})`}
+                                {userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result)
+                                    ? "✓ Already Minted (Max Reached)"
+                                    : isSoldOut
+                                        ? "Sold Out"
+                                        : isWritePending
+                                            ? "Confirm in Wallet..."
+                                            : isConfirming
+                                                ? "Minting..."
+                                                : `Mint (${priceFormatted === "0" ? "Free" : `${priceFormatted} USDC`})`}
                             </button>
                         )}
 

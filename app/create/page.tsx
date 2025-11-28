@@ -32,6 +32,7 @@ export default function CreateProject() {
         imageURI: "",
         maxSupply: "1000",
         mintPrice: "0",
+        maxPerWallet: "10",
     });
 
     const [isDeploying, setIsDeploying] = useState(false);
@@ -113,13 +114,14 @@ export default function CreateProject() {
 
             const supply = BigInt(formData.maxSupply);
             const price = parseEther(formData.mintPrice);
+            const maxPerWallet = BigInt(formData.maxPerWallet);
 
             // Simulate
             const { request } = await publicClient!.simulateContract({
                 address: factoryAddress as `0x${string}`,
                 abi: NFTFactoryArtifact.abi,
                 functionName: "deployCollection",
-                args: [formData.name, formData.symbol, formData.imageURI, supply, price], // Using imageURI as baseURI for now
+                args: [formData.name, formData.symbol, formData.imageURI, supply, price, maxPerWallet],
                 account: client.account,
             });
 
@@ -302,6 +304,20 @@ export default function CreateProject() {
                                         onChange={(e) => setFormData({ ...formData, mintPrice: e.target.value })}
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-300 mb-2">Max Per Wallet</label>
+                                <input
+                                    type="number"
+                                    required
+                                    min="1"
+                                    className="w-full bg-white text-black border border-gray-300 rounded-lg px-4 py-3"
+                                    placeholder="e.g., 10"
+                                    value={formData.maxPerWallet}
+                                    onChange={(e) => setFormData({ ...formData, maxPerWallet: e.target.value })}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Maximum number of NFTs one wallet can mint</p>
                             </div>
 
                             {error && (

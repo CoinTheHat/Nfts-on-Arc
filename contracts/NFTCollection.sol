@@ -8,11 +8,12 @@ contract NFTCollection is ERC721, Ownable {
     constructor() ERC721("", "") Ownable(msg.sender) {}
     
     // ============ Storage Layout (Optimized for Gas) ============
-    // Slot 0: bool (1 byte) + uint96 (12 bytes) + uint96 (12 bytes) + uint96 (12 bytes) = 1 slot
+    // Slot 0: bool (1 byte) + uint96 (12 bytes) + uint96 (12 bytes) + uint96 (12 bytes) = 37 bytes (2 slots)
     bool private _initialized;
     uint96 public totalMinted;      // Max 79B tokens (more than enough)
     uint96 public maxSupply;        // Max 79B tokens
     uint96 public mintPrice;        // Max 79B wei (~79 million ETH, plenty)
+    uint96 public maxPerWallet;     // Max tokens per wallet
     
     // Slot 1-2: strings
     string private _name;
@@ -27,6 +28,7 @@ contract NFTCollection is ERC721, Ownable {
         string memory baseTokenURI_,
         uint256 maxSupply_,
         uint256 mintPrice_,
+        uint256 maxPerWallet_,
         address owner_
     ) external {
         require(!_initialized, "Already initialized");
@@ -39,6 +41,7 @@ contract NFTCollection is ERC721, Ownable {
         baseTokenURI = baseTokenURI_;
         maxSupply = uint96(maxSupply_);
         mintPrice = uint96(mintPrice_);
+        maxPerWallet = uint96(maxPerWallet_);
     }
 
     function name() public view virtual override returns (string memory) {
@@ -52,6 +55,7 @@ contract NFTCollection is ERC721, Ownable {
     function mint() external payable {
         require(totalMinted < maxSupply, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient payment");
+        require(balanceOf(msg.sender) < maxPerWallet, "Max per wallet reached");
         
         uint256 tokenId;
         unchecked {

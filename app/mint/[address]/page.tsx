@@ -190,7 +190,7 @@ export default function MintPage() {
                         ) : (
                             <button
                                 onClick={handleMint}
-                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || (userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))}
+                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || Boolean(userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))}
                                 className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || (userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))
                                     ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                                     : isWritePending || isConfirming

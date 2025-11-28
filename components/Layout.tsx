@@ -1,5 +1,6 @@
 import Link from "next/link";
 import WalletConnectButton from "./WalletConnectButton";
+import SearchBar from "./SearchBar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -23,7 +24,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             </Link>
                         </nav>
                     </div>
-                    <WalletConnectButton />
+                    <div className="flex items-center gap-4">
+                        <SearchBar />
+                        <WalletConnectButton />
+                    </div>
                 </div>
             </header>
 

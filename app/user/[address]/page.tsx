@@ -77,12 +77,22 @@ export default function UserProfilePage() {
         })),
     });
 
+    // Fetch collection images
+    const { data: collectionURIs } = useReadContracts({
+        contracts: collections.map((addr) => ({
+            address: addr as `0x${string}`,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "collectionURI",
+        })),
+    });
+
     // Created collections
     const createdCollections = collections
         .map((addr, index) => ({
             address: addr,
             name: names?.[index]?.result,
             owner: owners?.[index]?.result,
+            imageUrl: collectionURIs?.[index]?.result as string | undefined,
         }))
         .filter((c) => (c.owner as string)?.toLowerCase() === address.toLowerCase());
 
@@ -92,6 +102,7 @@ export default function UserProfilePage() {
             address: addr,
             name: names?.[index]?.result,
             balance: balances?.[index]?.result as bigint | undefined,
+            imageUrl: collectionURIs?.[index]?.result as string | undefined,
         }))
         .filter((c) => c.balance && c.balance > BigInt(0));
 
@@ -130,9 +141,14 @@ export default function UserProfilePage() {
                             ) : (
                                 <div className="grid md:grid-cols-3 gap-4">
                                     {createdCollections.map((col) => (
-                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-xl p-4 transition-all">
-                                            <h3 className="font-bold truncate">{String(col.name || "Untitled")}</h3>
-                                            <p className="text-xs text-gray-500 font-mono truncate">{col.address}</p>
+                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-xl overflow-hidden transition-all">
+                                            {col.imageUrl && (
+                                                <img src={col.imageUrl} alt={String(col.name)} className="w-full h-40 object-cover" />
+                                            )}
+                                            <div className="p-4">
+                                                <h3 className="font-bold truncate">{String(col.name || "Untitled")}</h3>
+                                                <p className="text-xs text-gray-500 font-mono truncate">{col.address}</p>
+                                            </div>
                                         </Link>
                                     ))}
                                 </div>
@@ -147,9 +163,14 @@ export default function UserProfilePage() {
                             ) : (
                                 <div className="grid md:grid-cols-4 gap-4">
                                     {mintedCollections.map((col) => (
-                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-purple-500/50 rounded-xl p-4 transition-all">
-                                            <h4 className="font-bold text-sm truncate">{String(col.name || "Untitled")}</h4>
-                                            <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>
+                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all">
+                                            {col.imageUrl && (
+                                                <img src={col.imageUrl} alt={String(col.name)} className="w-full h-32 object-cover" />
+                                            )}
+                                            <div className="p-4">
+                                                <h4 className="font-bold text-sm truncate">{String(col.name || "Untitled")}</h4>
+                                                <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>
+                                            </div>
                                         </Link>
                                     ))}
                                 </div>

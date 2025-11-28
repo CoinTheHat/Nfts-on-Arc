@@ -46,7 +46,12 @@ export default function MintPage() {
     }, [isConfirmed, refetch]);
 
     const handleMint = () => {
-        if (!mintPrice?.result) return;
+        console.log("🎯 Mint button clicked!");
+        console.log("mintPrice:", mintPrice?.result);
+        if (!mintPrice?.result) {
+            console.error("❌ mintPrice is missing!");
+            return;
+        }
         writeContract({
             ...contractConfig,
             functionName: "mint",
@@ -62,6 +67,16 @@ export default function MintPage() {
         : 0;
 
     const priceFormatted = mintPrice?.result ? formatEther(mintPrice.result as bigint) : "0";
+
+    // Debug logging
+    console.log("🔍 Debug Info:", {
+        isConnected,
+        isWrongNetwork,
+        isSoldOut,
+        nameLoaded: Boolean(name?.result),
+        mintPriceLoaded: Boolean(mintPrice?.result),
+        buttonDisabled: isWritePending || isConfirming || isSoldOut || !Boolean(name?.result)
+    });
 
     if (readError) {
         return (

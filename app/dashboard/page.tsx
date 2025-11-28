@@ -46,6 +46,15 @@ export default function Dashboard() {
         })),
     });
 
+    // Fetch collection images (URIs)
+    const { data: collectionURIs } = useReadContracts({
+        contracts: collections.map((addr) => ({
+            address: addr as `0x${string}`,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "collectionURI",
+        })),
+    });
+
     // Filter collections owned by current user (created by them)
     const myCollections = collections.map((addr, index) => ({
         address: addr,
@@ -58,6 +67,7 @@ export default function Dashboard() {
         address: addr,
         name: names?.[index]?.result,
         balance: balances?.[index]?.result as bigint | undefined,
+        imageUrl: collectionURIs?.[index]?.result as string | undefined,
     })).filter(c => c.balance && c.balance > BigInt(0));
 
     if (!isConnected) {
@@ -114,8 +124,20 @@ export default function Dashboard() {
                             {mintedCollections.map((col) => (
                                 <Link key={col.address} href={`/mint/${col.address}`} className="block group">
                                     <div className="bg-gray-900/50 border border-gray-800 group-hover:border-purple-500/50 rounded-xl p-4 transition-all">
-                                        <div className="h-24 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg mb-3 flex items-center justify-center text-3xl">
-                                            🖼️
+                                        <div className="h-24 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg mb-3 overflow-hidden">
+                                            {col.imageUrl ? (
+                                                <img
+                                                    src={col.imageUrl}
+                                                    alt={String(col.name || "NFT")}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        e.currentTarget.parentElement!.innerHTML = '<div class="flex items-center justify-center h-full text-3xl">🖼️</div>';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-3xl">🖼️</div>
+                                            )}
                                         </div>
                                         <h4 className="font-bold text-sm mb-1 truncate">{String(col.name || "Untitled")}</h4>
                                         <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>

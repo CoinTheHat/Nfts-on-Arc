@@ -1,1 +1,1 @@
-export const factoryAddress = "0xa1ae59440ef1be84d628700ec07a82f142f3ebcd"; // Final Factory (Dashboard + Airdrop + Fixes)
+export const factoryAddress = "0x15b6F4E8d9E1Eb506526392a66b02be6B65Cf62a"; // Final Factory (Dashboard + Airdrop + Fixes)

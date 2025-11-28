@@ -58,7 +58,7 @@ export default function Dashboard() {
         address: addr,
         name: names?.[index]?.result,
         balance: balances?.[index]?.result as bigint | undefined,
-    })).filter(c => c.balance && c.balance > 0n);
+    })).filter(c => c.balance && c.balance > BigInt(0));
 
     if (!isConnected) {
         return (

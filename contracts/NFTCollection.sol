@@ -6,7 +6,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NFTCollection is ERC721, Ownable {
     constructor() ERC721("", "") Ownable(msg.sender) {}
+    
+    // ============ Storage Layout (Optimized for Gas) ============
+    // Slot 0: bool (1 byte) + uint96 (12 bytes) + uint96 (12 bytes) + uint96 (12 bytes) = 1 slot
     bool private _initialized;
+    uint96 public totalMinted;      // Max 79B tokens (more than enough)
+    uint96 public maxSupply;        // Max 79B tokens
+    uint96 public mintPrice;        // Max 79B wei (~79 million ETH, plenty)
+    
+    // Slot 1-2: strings
+    string private _name;
+    string private _symbol;
+    
+    // Slot 3: string
+    string private baseTokenURI;
 
     function initialize(
         string memory name_,
@@ -19,25 +32,14 @@ contract NFTCollection is ERC721, Ownable {
         require(!_initialized, "Already initialized");
         _initialized = true;
         
-        // Manually set name and symbol storage variables if possible, 
-        // but ERC721 OpenZeppelin stores them in private variables which we can't access directly in a clone easily without using their Initializable version.
-        // HOWEVER, standard OZ ERC721 uses constructor for name/symbol. 
-        // For Clones, we usually use 'ERC721Upgradeable' or a custom implementation.
-        // To keep it simple and avoid installing new packages (OpenZeppelin Upgradeable), 
-        // we will just store name and symbol in public variables and override the name()/symbol() functions.
-        
         _name = name_;
         _symbol = symbol_;
         _transferOwnership(owner_);
         
         baseTokenURI = baseTokenURI_;
-        maxSupply = maxSupply_;
-        mintPrice = mintPrice_;
+        maxSupply = uint96(maxSupply_);
+        mintPrice = uint96(mintPrice_);
     }
-
-    // Storage for name and symbol since we can't use constructor
-    string private _name;
-    string private _symbol;
 
     function name() public view virtual override returns (string memory) {
         return _name;
@@ -51,18 +53,23 @@ contract NFTCollection is ERC721, Ownable {
         require(totalMinted < maxSupply, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient payment");
         
-        uint256 tokenId = totalMinted + 1;
-        totalMinted++;
-        _safeMint(msg.sender, tokenId);
+        uint256 tokenId;
+        unchecked {
+            tokenId = ++totalMinted; // Pre-increment saves gas
+        }
+        _mint(msg.sender, tokenId); // Use _mint instead of _safeMint for gas savings
     }
 
     function airdrop(address[] calldata recipients) external onlyOwner {
-        require(totalMinted + recipients.length <= maxSupply, "Max supply reached");
+        uint256 len = recipients.length;
+        require(totalMinted + len <= maxSupply, "Max supply reached");
         
-        for (uint256 i = 0; i < recipients.length; i++) {
-            uint256 tokenId = totalMinted + 1;
-            totalMinted++;
-            _safeMint(recipients[i], tokenId);
+        uint256 nextId = totalMinted;
+        unchecked {
+            for (uint256 i; i < len; ++i) {
+                _mint(recipients[i], ++nextId);
+            }
+            totalMinted = uint96(nextId);
         }
     }
 
@@ -79,7 +86,7 @@ contract NFTCollection is ERC721, Ownable {
     }
 
     function setMintPrice(uint256 newMintPrice) external onlyOwner {
-        mintPrice = newMintPrice;
+        mintPrice = uint96(newMintPrice);
     }
 
     function withdraw() external onlyOwner {

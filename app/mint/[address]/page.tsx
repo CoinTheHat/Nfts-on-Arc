@@ -48,8 +48,8 @@ export default function MintPage() {
     const handleMint = () => {
         console.log("🎯 Mint button clicked!");
         console.log("mintPrice:", mintPrice?.result);
-        if (!mintPrice?.result) {
-            console.error("❌ mintPrice is missing!");
+        if (mintPrice?.result === undefined) {
+            console.error("❌ mintPrice is not loaded yet!");
             return;
         }
         writeContract({

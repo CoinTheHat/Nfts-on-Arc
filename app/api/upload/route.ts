@@ -3,15 +3,22 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function POST(req: NextRequest) {
     try {
+        console.log("Upload request started");
+        console.log("Supabase URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+        console.log("Supabase Key exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
         const formData = await req.formData();
         const file = formData.get("file") as File;
 
         if (!file) {
+            console.error("No file found in formData");
             return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
         }
 
         const buffer = await file.arrayBuffer();
         const filename = Date.now() + "_" + file.name.replace(/\s/g, "_");
+
+        console.log("Uploading file:", filename);
 
         // Upload to Supabase Storage
         const { data, error } = await supabase.storage
@@ -22,9 +29,11 @@ export async function POST(req: NextRequest) {
             });
 
         if (error) {
-            console.error("Supabase upload error:", error);
+            console.error("Supabase upload error details:", JSON.stringify(error, null, 2));
             throw error;
         }
+
+        console.log("Upload successful:", data);
 
         // Get Public URL
         const { data: { publicUrl } } = supabase.storage
@@ -33,7 +42,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ url: publicUrl });
     } catch (e: any) {
-        console.error("Upload error:", e);
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        console.error("Catch block error:", e);
+        return NextResponse.json({ error: e.message || "Unknown server error", details: JSON.stringify(e) }, { status: 500 });
     }
 }

@@ -5,19 +5,24 @@ import Layout from "@/components/Layout";
 import Link from "next/link";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { factoryAddress } from "@/lib/factoryAddress";
+import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
 import { Abi } from "viem";
 
 export default function Dashboard() {
     const { address, isConnected } = useAccount();
 
-    const { data: allCollections } = useReadContract({
-        address: factoryAddress as `0x${string}`,
-        abi: NFTFactoryArtifact.abi as unknown as Abi,
-        functionName: "getAllCollections",
+    // Fetch collections from ALL factories
+    const { data: allFactoriesData } = useReadContracts({
+        contracts: factoryAddresses.map((factoryAddr) => ({
+            address: factoryAddr as `0x${string}`,
+            abi: NFTFactoryArtifact.abi as unknown as Abi,
+            functionName: "getAllCollections",
+        })),
     });
 
-    const collections = (allCollections as string[] || []);
+    // Combine all collections from all factories
+    const collections = (allFactoriesData || [])
+        .flatMap((result) => result.status === "success" ? result.result as string[] : []);
 
     // Fetch owners for all collections to filter
     const { data: owners } = useReadContracts({

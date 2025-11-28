@@ -16,9 +16,18 @@ export async function POST(req: NextRequest) {
         }
 
         const buffer = await file.arrayBuffer();
-        // Generate safe filename - remove all special chars
-        const ext = file.name.split('.').pop() || 'png';
-        const filename = `${Date.now()}_upload.${ext}`;
+
+        // Sanitize filename: replace Turkish chars and special chars
+        let safeName = file.name
+            .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+            .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+            .replace(/ş/g, 's').replace(/Ş/g, 'S')
+            .replace(/ı/g, 'i').replace(/İ/g, 'I')
+            .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+            .replace(/ç/g, 'c').replace(/Ç/g, 'C')
+            .replace(/[^a-zA-Z0-9._-]/g, '_'); // Replace any other special char with underscore
+
+        const filename = `${Date.now()}_${safeName}`;
 
         console.log("Uploading file:", filename);
 

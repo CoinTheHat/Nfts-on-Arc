@@ -238,7 +238,7 @@ export default function MintPage() {
                             </div>
                         )}
 
-                        {!isConnected ? (
+                        {!mounted || !isConnected ? (
                             <div className="text-center p-6 bg-gray-950/50 rounded-xl border border-gray-800">
                                 <p className="text-gray-400 mb-4">Connect wallet to mint</p>
                             </div>

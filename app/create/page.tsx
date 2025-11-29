@@ -382,8 +382,8 @@ export default function CreateProject() {
                                     }}
                                 />
                                 {formData.imageURI ? (
-                                    <div className="relative w-full h-full min-h-[200px] z-20 pointer-events-none">
-                                        <img src={formData.imageURI} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                                    <div className="relative w-full aspect-square max-h-96 z-20 pointer-events-none bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <img src={formData.imageURI} alt="Preview" className="max-w-full max-h-full object-contain" />
                                         <button
                                             type="button"
                                             onClick={(e) => {

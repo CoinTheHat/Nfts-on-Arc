@@ -105,7 +105,7 @@ export default function Dashboard() {
                 ) : (
                     <div className="grid md:grid-cols-3 gap-6">
                         {myCollections.map((col) => (
-                            <Link key={col.address} href={`/dashboard/${col.address}`} className="block group">
+                            <Link key={col.address} href={`/collection/${col.address}`} className="block group">
                                 <div className="bg-gray-900/50 border border-gray-800 group-hover:border-blue-500/50 rounded-xl p-6 transition-all">
                                     <div className="h-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 overflow-hidden">
                                         {col.imageUrl ? (

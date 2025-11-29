@@ -244,9 +244,9 @@ export default function CreateProject() {
                         </div>
                     </div>
                 ) : (
-                    <form onSubmit={handleCreateCollection} className="grid md:grid-cols-3 gap-8">
+                    <form onSubmit={handleCreateCollection} className="grid md:grid-cols-2 gap-8">
                         {/* Left Column: Inputs */}
-                        <div className="md:col-span-2 space-y-6">
+                        <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-300 mb-2">Project Name</label>
@@ -355,8 +355,9 @@ export default function CreateProject() {
                         </div>
 
                         {/* Right Column: Image Upload */}
-                        <div className="md:col-span-1">
-                            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center min-h-[300px] relative">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-300 mb-2">Collection Image</label>
+                            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center flex flex-col items-center justify-center min-h-[500px] relative">
                                 <input
                                     type="file"
                                     accept="image/*,video/*"

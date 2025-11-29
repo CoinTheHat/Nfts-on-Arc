@@ -9,6 +9,7 @@ export default function ProfilePage() {
     const { address, isConnected } = useAccount();
     const [username, setUsername] = useState("");
     const [bio, setBio] = useState("");
+    const [twitterHandle, setTwitterHandle] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function ProfilePage() {
             if (data) {
                 setUsername(data.username || "");
                 setBio(data.bio || "");
+                setTwitterHandle(data.twitter_handle || "");
                 setAvatarUrl(data.avatar_url || "");
             }
         } catch (e) {
@@ -85,6 +87,7 @@ export default function ProfilePage() {
                     wallet_address: address.toLowerCase(),
                     username: username.trim(),
                     bio: bio.trim(),
+                    twitter_handle: twitterHandle.trim().replace("@", ""), // Remove @ if user added it
                     avatar_url: avatarUrl,
                 }, { onConflict: "wallet_address" });
 
@@ -163,6 +166,21 @@ export default function ProfilePage() {
                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
                                 maxLength={200}
                             />
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold mb-2">Twitter Handle (Optional)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-3 text-gray-500">@</span>
+                                <input
+                                    type="text"
+                                    value={twitterHandle}
+                                    onChange={(e) => setTwitterHandle(e.target.value)}
+                                    placeholder="username"
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    maxLength={30}
+                                />
+                            </div>
                         </div>
 
                         <button

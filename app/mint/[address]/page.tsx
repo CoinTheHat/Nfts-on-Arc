@@ -65,13 +65,37 @@ export default function MintPage() {
     const { username: ownerUsername } = useUsername(ownerAddress);
 
     const handleMintMultiple = () => {
-        if (!mintPrice?.result) return;
+        console.log("Mint button clicked");
+        console.log("Quantity:", quantity);
+        console.log("Mint Price Result:", mintPrice?.result);
+
+        if (!mintPrice?.result) {
+            console.error("Mint price is missing");
+            return;
+        }
+
         const totalPrice = BigInt(mintPrice.result as bigint) * BigInt(quantity);
+        console.log("Total Price:", totalPrice.toString());
+
+        console.log("Calling writeContract with:", {
+            ...contractConfig,
+            functionName: "mintMultiple",
+            args: [quantity],
+            value: totalPrice,
+        });
+
         writeContract({
             ...contractConfig,
             functionName: "mintMultiple",
             args: [quantity],
             value: totalPrice,
+        }, {
+            onError: (error) => {
+                console.error("Contract write error:", error);
+            },
+            onSuccess: (data) => {
+                console.log("Contract write success:", data);
+            }
         });
     };
 

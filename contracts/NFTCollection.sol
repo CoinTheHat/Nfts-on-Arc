@@ -64,6 +64,7 @@ contract NFTCollection is ERC721, Ownable {
         _mint(msg.sender, tokenId); // Use _mint instead of _safeMint for gas savings
     }
 
+    // Mint multiple NFTs in one transaction
     function mintMultiple(uint256 quantity) external payable {
         require(quantity > 0, "Quantity must be > 0");
         require(totalMinted + quantity <= maxSupply, "Exceeds max supply");

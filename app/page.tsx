@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import Layout from "@/components/Layout";
@@ -7,10 +5,25 @@ import Link from "next/link";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
+import { supabase } from "@/lib/supabaseClient";
 
 import { Abi } from "viem";
 
 export default function Home() {
+  const [moderationData, setModerationData] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const fetchModeration = async () => {
+      const { data } = await supabase.from('collection_moderation').select('address, status');
+      const map: Record<string, string> = {};
+      data?.forEach((item: any) => {
+        map[item.address.toLowerCase()] = item.status;
+      });
+      setModerationData(map);
+    };
+    fetchModeration();
+  }, []);
+
   // Fetch collections from ALL factories
   const { data: allFactoriesData } = useReadContracts({
     contracts: factoryAddresses.map((factoryAddr) => ({
@@ -22,15 +35,25 @@ export default function Home() {
 
   // Combine all collections from all factories
   const allCollections = (allFactoriesData || [])
-    .flatMap((result) => result.status === "success" ? result.result as string[] : []);
+    .flatMap((result) => result.status === "success" ? result.result as string[] : [])
+    .reverse(); // Show newest first
 
-  // 2. Prepare to fetch metadata for the last 6 collections (newest first)
-  const collectionsToDisplay = (allCollections || [])
-    .slice()
-    .reverse()
-    .slice(0, 6) as `0x${string}`[];
+  // Filter out hidden collections for the main list
+  const visibleCollections = allCollections.filter(addr => {
+    const status = moderationData[addr.toLowerCase()];
+    return status !== 'hidden';
+  });
 
-  // 3. Bulk fetch names for these collections
+  // Filter verified collections for Featured section
+  const featuredCollections = allCollections.filter(addr => {
+    const status = moderationData[addr.toLowerCase()];
+    return status === 'verified';
+  }).slice(0, 3); // Top 3 verified
+
+  // Prepare to fetch metadata for visible collections (pagination could be added here)
+  const collectionsToDisplay = visibleCollections.slice(0, 6) as `0x${string}`[];
+
+  // Bulk fetch names
   const { data: collectionNames } = useReadContracts({
     contracts: collectionsToDisplay.map((addr) => ({
       address: addr,
@@ -39,10 +62,28 @@ export default function Home() {
     })),
   });
 
-  // 4. Bulk fetch collectionURIs (image URLs)
+  // Bulk fetch URIs
   const { data: collectionURIs } = useReadContracts({
     contracts: collectionsToDisplay.map((addr) => ({
       address: addr,
+      abi: NFTCollectionArtifact.abi as unknown as Abi,
+      functionName: "collectionURI",
+    })),
+  });
+
+  // Bulk fetch names for Featured
+  const { data: featuredNames } = useReadContracts({
+    contracts: featuredCollections.map((addr) => ({
+      address: addr as `0x${string}`,
+      abi: NFTCollectionArtifact.abi as unknown as Abi,
+      functionName: "name",
+    })),
+  });
+
+  // Bulk fetch URIs for Featured
+  const { data: featuredURIs } = useReadContracts({
+    contracts: featuredCollections.map((addr) => ({
+      address: addr as `0x${string}`,
       abi: NFTCollectionArtifact.abi as unknown as Abi,
       functionName: "collectionURI",
     })),
@@ -71,16 +112,63 @@ export default function Home() {
       </div>
 
       {/* Featured Collections Section */}
-      <div className="max-w-6xl mx-auto mt-20">
-        <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Featured Mints</h2>
+      {featuredCollections.length > 0 && (
+        <div className="max-w-6xl mx-auto mt-20">
+          <h2 className="text-3xl font-bold mb-8 text-center md:text-left flex items-center gap-2">
+            <span>🔥</span> Featured Mints
+          </h2>
 
-        {!factoryAddress ? (
-          <div className="text-center text-gray-500 py-10">
-            Factory not configured yet.
+          <div className="grid md:grid-cols-3 gap-6">
+            {featuredCollections.map((addr, index) => {
+              const nameData = featuredNames?.[index];
+              const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
+
+              const uriData = featuredURIs?.[index];
+              const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
+
+              return (
+                <Link
+                  key={addr}
+                  href={`/mint/${addr}`}
+                  className="bg-gray-900/50 border border-yellow-500/30 hover:border-yellow-500 rounded-2xl p-6 transition-all hover:-translate-y-1 group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    VERIFIED
+                  </div>
+                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl">🎨</span>';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-4xl">🎨</span>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
+                  <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>
+                  <div className="mt-4 text-yellow-400 text-sm font-medium group-hover:text-yellow-300">
+                    Mint Now →
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        ) : (collectionsToDisplay.length === 0) ? (
+        </div>
+      )}
+
+      {/* All Collections Section */}
+      <div className="max-w-6xl mx-auto mt-20">
+        <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Latest Collections</h2>
+
+        {collectionsToDisplay.length === 0 ? (
           <div className="text-center text-gray-500 py-10">
-            No collections deployed yet. Be the first!
+            No collections found.
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
@@ -104,7 +192,6 @@ export default function Home() {
                         alt={name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback to emoji if image fails to load
                           e.currentTarget.style.display = 'none';
                           e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl">🎨</span>';
                         }}
@@ -145,3 +232,4 @@ export default function Home() {
     </Layout>
   );
 }
+

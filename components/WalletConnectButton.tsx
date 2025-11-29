@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
 import { arcTestnet } from "@/lib/arcChain";
+import { useUsername, formatAddress } from "@/lib/useUsername";
 
 export default function WalletConnectButton() {
     const { address, isConnected } = useAccount();
@@ -12,6 +13,7 @@ export default function WalletConnectButton() {
     const chainId = useChainId();
     const isWrongNetwork = isConnected && chainId !== arcTestnet.id;
     const { switchChain, error: switchError } = useSwitchChain();
+    const { username } = useUsername(address);
 
     const [mounted, setMounted] = useState(false);
 
@@ -49,7 +51,7 @@ export default function WalletConnectButton() {
                 <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-gray-200 font-mono">
-                        {address?.slice(0, 6)}...{address?.slice(-4)}
+                        {formatAddress(address!, username)}
                     </span>
                 </div>
                 <button

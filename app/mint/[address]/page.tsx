@@ -121,11 +121,11 @@ export default function MintPage() {
 
                     {/* Collection Image */}
                     {collectionURI?.status === "success" && String(collectionURI.result) && (
-                        <div className="mb-8 rounded-xl overflow-hidden">
+                        <div className="mb-8 rounded-xl overflow-hidden bg-gray-900">
                             <img
                                 src={String(collectionURI.result)}
                                 alt={name?.status === "success" ? String(name.result) : "NFT Collection"}
-                                className="w-full h-64 object-cover"
+                                className="w-full h-96 object-contain"
                                 onError={(e) => {
                                     e.currentTarget.style.display = 'none';
                                 }}

@@ -74,6 +74,15 @@ export default function AdminPage() {
         })),
     });
 
+    // Fetch URIs
+    const { data: collectionURIs } = useReadContracts({
+        contracts: allCollections.map((addr) => ({
+            address: addr as `0x${string}`,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "collectionURI",
+        })),
+    });
+
     const updateStatus = async (collectionAddress: string, status: CollectionStatus) => {
         const { error } = await supabase
             .from('collection_moderation')
@@ -137,14 +146,34 @@ export default function AdminPage() {
                                 {allCollections.map((addr, index) => {
                                     const nameData = collectionNames?.[index];
                                     const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
+
+                                    const uriData = collectionURIs?.[index];
+                                    const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
+
                                     const currentStatus = moderationData[addr.toLowerCase()] || 'neutral';
 
                                     return (
                                         <tr key={addr} className="hover:bg-gray-800/30 transition-colors">
                                             <td className="p-4 font-medium text-white">
-                                                <Link href={`/mint/${addr}`} className="hover:underline hover:text-blue-400">
-                                                    {name}
-                                                </Link>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
+                                                        {imageUrl ? (
+                                                            <img
+                                                                src={imageUrl}
+                                                                alt={name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-lg">🎨</div>
+                                                        )}
+                                                    </div>
+                                                    <Link href={`/mint/${addr}`} className="hover:underline hover:text-blue-400">
+                                                        {name}
+                                                    </Link>
+                                                </div>
                                             </td>
                                             <td className="p-4 font-mono text-sm text-gray-500">
                                                 {addr}

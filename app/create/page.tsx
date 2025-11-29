@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useWalletClient, usePublicClient, useChainId, useSwitchChain } from "wagmi";
 import { getWalletClient } from "wagmi/actions";
-import { parseEther } from "viem";
+import { parseUnits } from "viem";
 import Layout from "@/components/Layout";
 import { arcTestnet } from "@/lib/arcChain";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
@@ -98,7 +98,6 @@ export default function CreateProject() {
                     throw new Error("Please switch your wallet to Arc Testnet to proceed.");
                 }
             }
-
             // Force get a fresh client for the correct chain
             let client = await getWalletClient(config, { chainId: arcTestnet.id, account: address });
 
@@ -113,7 +112,7 @@ export default function CreateProject() {
             if (!client) throw new Error("Wallet connection failed. Please try reconnecting.");
 
             const supply = BigInt(formData.maxSupply);
-            const price = parseEther(formData.mintPrice);
+            const price = parseUnits(formData.mintPrice, 6); // USDC uses 6 decimals
             const maxPerWallet = BigInt(formData.maxPerWallet);
 
             // Simulate

@@ -66,7 +66,7 @@ export default function MintPage() {
 
     const handleMintMultiple = () => {
         if (!mintPrice?.result) return;
-        const totalPrice = BigInt(mintPrice.result) * BigInt(quantity);
+        const totalPrice = BigInt(mintPrice.result as bigint) * BigInt(quantity);
         writeContract({
             ...contractConfig,
             functionName: "mintMultiple",

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
 import { arcTestnet } from "@/lib/arcChain";
 import { useUsername, formatAddress } from "@/lib/useUsername";
+import Link from "next/link";
 
 export default function WalletConnectButton() {
     const { address, isConnected } = useAccount();
@@ -48,12 +49,12 @@ export default function WalletConnectButton() {
                         {switchError.message}
                     </span>
                 )}
-                <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
+                <Link href="/profile" className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-gray-200 font-mono">
                         {formatAddress(address!, username)}
                     </span>
-                </div>
+                </Link>
                 <button
                     onClick={() => disconnect()}
                     className="text-gray-400 hover:text-white text-sm transition-colors"

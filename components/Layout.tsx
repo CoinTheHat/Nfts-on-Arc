@@ -19,9 +19,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             <Link href="/dashboard" className="hover:text-white transition-colors">
                                 Dashboard
                             </Link>
-                            <Link href="/profile" className="hover:text-white transition-colors">
-                                Profile
-                            </Link>
                         </nav>
                     </div>
                     <div className="flex items-center gap-4">

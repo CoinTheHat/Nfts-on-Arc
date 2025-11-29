@@ -356,8 +356,8 @@ export default function CreateProject() {
 
                         {/* Right Column: Image Upload */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-300 mb-2">Collection Image</label>
-                            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center flex flex-col items-center justify-center min-h-[500px] relative">
+                            <label className="block text-sm font-bold text-gray-300 mb-3">Collection Image</label>
+                            <div className="relative aspect-square w-full max-w-md">
                                 <input
                                     type="file"
                                     accept="image/*,video/*"
@@ -383,25 +383,30 @@ export default function CreateProject() {
                                     }}
                                 />
                                 {formData.imageURI ? (
-                                    <div className="relative w-full aspect-square max-h-96 z-20 pointer-events-none bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden">
-                                        <img src={formData.imageURI} alt="Preview" className="max-w-full max-h-full object-contain" />
+                                    <div className="relative w-full h-full bg-gray-800 rounded-2xl border-2 border-gray-700 overflow-hidden flex items-center justify-center">
+                                        <img src={formData.imageURI} alt="Preview" className="w-full h-full object-contain" />
                                         <button
                                             type="button"
                                             onClick={(e) => {
-                                                e.preventDefault(); // Prevent file input trigger
+                                                e.preventDefault();
                                                 setFormData({ ...formData, imageURI: "" });
                                             }}
-                                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full text-xs pointer-events-auto z-30"
+                                            className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center pointer-events-auto z-30 transition-colors"
                                         >
                                             ✕
                                         </button>
                                     </div>
                                 ) : (
-                                    <>
-                                        <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        <p className="text-gray-500 font-medium mb-2">Click or Drag to Upload</p>
-                                        <p className="text-gray-400 text-xs mb-4">(jpg, png, gif, webp, mp4)</p>
-                                    </>
+                                    <div className="w-full h-full bg-gray-900/30 border-2 border-dashed border-gray-700 hover:border-gray-600 rounded-2xl flex flex-col items-center justify-center transition-colors">
+                                        <div className="text-center">
+                                            <svg className="w-16 h-16 text-gray-600 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <p className="text-gray-400 font-medium mb-1">Add collection media</p>
+                                            <p className="text-gray-500 text-sm">(jpg, png, gif, webp, mp4)</p>
+                                            <p className="text-gray-600 text-xs mt-2">max. 20 MB</p>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>

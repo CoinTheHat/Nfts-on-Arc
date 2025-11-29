@@ -18,6 +18,11 @@ export default function MintPage() {
     const { switchChain } = useSwitchChain();
     const { writeContract, data: hash, error: writeError, isPending: isWritePending } = useWriteContract();
     const [quantity, setQuantity] = useState(1);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash,
@@ -195,7 +200,7 @@ export default function MintPage() {
                     {/* Action Area */}
                     <div className="space-y-4">
                         {/* Quantity Selector */}
-                        {isConnected && !isWrongNetwork && !isSoldOut && maxAvailable > 0 && (
+                        {mounted && isConnected && !isWrongNetwork && !isSoldOut && maxAvailable > 0 && (
                             <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                                 <label className="block text-sm font-bold text-gray-300 mb-3">Quantity</label>
                                 <div className="flex items-center gap-4">

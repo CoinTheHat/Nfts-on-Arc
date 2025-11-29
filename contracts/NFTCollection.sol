@@ -64,6 +64,21 @@ contract NFTCollection is ERC721, Ownable {
         _mint(msg.sender, tokenId); // Use _mint instead of _safeMint for gas savings
     }
 
+    function mintMultiple(uint256 quantity) external payable {
+        require(quantity > 0, "Quantity must be > 0");
+        require(totalMinted + quantity <= maxSupply, "Exceeds max supply");
+        require(balanceOf(msg.sender) + quantity <= maxPerWallet, "Exceeds max per wallet");
+        require(msg.value >= mintPrice * quantity, "Insufficient payment");
+
+        uint256 nextId = totalMinted;
+        unchecked {
+            for (uint256 i; i < quantity; ++i) {
+                _mint(msg.sender, ++nextId);
+            }
+            totalMinted = uint96(nextId);
+        }
+    }
+
     function airdrop(address[] calldata recipients) external onlyOwner {
         uint256 len = recipients.length;
         require(totalMinted + len <= maxSupply, "Max supply reached");

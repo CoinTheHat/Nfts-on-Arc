@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\atknl\\Desktop\\Arc\\contracts\\NFTCollection.sol": {
-      "lastModificationDate": 1764292945373,
-      "contentHash": "80c2491f052813c0e068dfc75c660bd8",
+      "lastModificationDate": 1764450448188,
+      "contentHash": "255fc46e7047cad532821032fe12cd9a",
       "sourceName": "contracts/NFTCollection.sol",
       "solcConfig": {
         "version": "0.8.20",

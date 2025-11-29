@@ -17,6 +17,7 @@ export default function MintPage() {
     const chainId = useChainId();
     const { switchChain } = useSwitchChain();
     const { writeContract, data: hash, error: writeError, isPending: isWritePending } = useWriteContract();
+    const [quantity, setQuantity] = useState(1);
 
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash,
@@ -49,20 +50,6 @@ export default function MintPage() {
         }
     }, [isConfirmed, refetch]);
 
-    const handleMint = () => {
-        console.log("🎯 Mint button clicked!");
-        console.log("mintPrice:", mintPrice?.result);
-        if (mintPrice?.result === undefined) {
-            console.error("❌ mintPrice is not loaded yet!");
-            return;
-        }
-        writeContract({
-            ...contractConfig,
-            functionName: "mint",
-            value: mintPrice.result as bigint,
-        });
-    };
-
     const isWrongNetwork = isConnected && chainId !== arcTestnet.id;
     const isSoldOut = totalMinted?.result && maxSupply?.result ? totalMinted.result >= maxSupply.result : false;
 
@@ -70,21 +57,23 @@ export default function MintPage() {
         ? (Number(totalMinted.result) / Number(maxSupply.result)) * 100
         : 0;
 
-    const priceFormatted = mintPrice?.result ? formatEther(mintPrice.result as bigint) : "0";
+    const priceInUSDC = mintPrice?.result ? (Number(mintPrice.result) / 1e6).toFixed(2) : "0";
+    const maxAvailable = maxPerWallet?.result ? Number(maxPerWallet.result) - Number(userBalance?.result || 0) : 1;
 
     // Fetch username for collection owner
     const ownerAddress = owner?.result as string | undefined;
     const { username: ownerUsername } = useUsername(ownerAddress);
 
-    // Debug logging
-    console.log("🔍 Debug Info:", {
-        isConnected,
-        isWrongNetwork,
-        isSoldOut,
-        nameLoaded: Boolean(name?.result),
-        mintPriceLoaded: Boolean(mintPrice?.result),
-        buttonDisabled: isWritePending || isConfirming || isSoldOut || !Boolean(name?.result)
-    });
+    const handleMintMultiple = () => {
+        if (!mintPrice?.result) return;
+        const totalPrice = BigInt(mintPrice.result) * BigInt(quantity);
+        writeContract({
+            ...contractConfig,
+            functionName: "mintMultiple",
+            args: [quantity],
+            value: totalPrice,
+        });
+    };
 
     if (readError) {
         return (
@@ -102,7 +91,7 @@ export default function MintPage() {
         <Layout>
             <div className="max-w-xl mx-auto">
                 <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 shadow-2xl backdrop-blur-sm">
-                    {/* Header / Metadata */}
+                    {/* Header */}
                     <div className="text-center mb-8">
                         {name?.status === "success" ? (
                             <>
@@ -172,15 +161,54 @@ export default function MintPage() {
                     {/* Price Info */}
                     <div className="text-center mb-6">
                         <div className="inline-block bg-gray-800 px-4 py-2 rounded-lg">
-                            <span className="text-gray-400 text-sm uppercase tracking-wider">Price</span>
+                            <span className="text-gray-400 text-sm uppercase tracking-wider">Price per NFT</span>
                             <div className="text-2xl font-bold text-white">
-                                {priceFormatted === "0" ? "Free" : `${priceFormatted} USDC`}
+                                {priceInUSDC === "0" ? "Free" : `${priceInUSDC} USDC`}
                             </div>
                         </div>
                     </div>
 
                     {/* Action Area */}
                     <div className="space-y-4">
+                        {/* Quantity Selector */}
+                        {isConnected && !isWrongNetwork && !isSoldOut && maxAvailable > 0 && (
+                            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+                                <label className="block text-sm font-bold text-gray-300 mb-3">Quantity</label>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        className="w-12 h-12 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                                        disabled={quantity <= 1}
+                                    >
+                                        −
+                                    </button>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={maxAvailable}
+                                        value={quantity}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value) || 1;
+                                            setQuantity(Math.min(Math.max(1, val), maxAvailable));
+                                        }}
+                                        className="w-24 h-12 text-center text-xl font-bold bg-gray-800 border border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setQuantity(Math.min(quantity + 1, maxAvailable))}
+                                        className="w-12 h-12 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                                        disabled={quantity >= maxAvailable}
+                                    >
+                                        +
+                                    </button>
+                                    <div className="flex-1 text-right">
+                                        <p className="text-sm text-gray-400">Total: <span className="text-white font-bold">{(Number(priceInUSDC) * quantity).toFixed(2)} USDC</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {!isConnected ? (
                             <div className="text-center p-6 bg-gray-950/50 rounded-xl border border-gray-800">
                                 <p className="text-gray-400 mb-4">Connect wallet to mint</p>
@@ -194,24 +222,25 @@ export default function MintPage() {
                             </button>
                         ) : (
                             <button
-                                onClick={handleMint}
-                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || Boolean(userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))}
-                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || (userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result))
+                                onClick={handleMintMultiple}
+                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || maxAvailable <= 0}
+                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || maxAvailable <= 0
                                     ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                                     : isWritePending || isConfirming
                                         ? "bg-blue-600/50 text-white cursor-wait"
                                         : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
                                     }`}
                             >
-                                {userBalance?.result && maxPerWallet?.result && Number(userBalance.result) >= Number(maxPerWallet.result)
+                                {maxAvailable <= 0
                                     ? "✓ Already Minted (Max Reached)"
                                     : isSoldOut
                                         ? "Sold Out"
                                         : isWritePending
-                                            ? "Confirm in Wallet..."
+                                            ? "Preparing..."
                                             : isConfirming
                                                 ? "Minting..."
-                                                : `Mint (${priceFormatted === "0" ? "Free" : `${priceFormatted} USDC`})`}
+                                                : `Mint ${quantity > 1 ? quantity + " NFTs" : ""} ${priceInUSDC === "0" ? "(Free)" : `(${(Number(priceInUSDC) * quantity).toFixed(2)} USDC)`}`
+                                }
                             </button>
                         )}
 

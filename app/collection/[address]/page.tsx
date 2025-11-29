@@ -47,7 +47,7 @@ export default function CollectionOverview() {
                 <div className="grid md:grid-cols-2 gap-8 mb-8">
                     {/* Left: Image */}
                     <div>
-                        {collectionURI && (
+                        {Boolean(collectionURI) && (
                             <div className="aspect-square rounded-2xl overflow-hidden bg-gray-900 border-2 border-gray-800">
                                 <img
                                     src={String(collectionURI)}
@@ -92,7 +92,7 @@ export default function CollectionOverview() {
                             </div>
                         </div>
 
-                        {isOwner && (
+                        {Boolean(isOwner) && (
                             <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
                                 <p className="text-blue-400 text-sm">✓ You are the owner of this collection</p>
                             </div>

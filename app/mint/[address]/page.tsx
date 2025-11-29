@@ -74,7 +74,7 @@ export default function MintPage() {
         console.log("Quantity:", quantity);
         console.log("Mint Price Result:", mintPrice?.result);
 
-        if (!mintPrice?.result) {
+        if (mintPrice?.result === undefined) {
             console.error("Mint price is missing");
             return;
         }

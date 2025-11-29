@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useReadContract, useAccount } from "wagmi";
+import { useReadContract, useAccount, useWriteContract } from "wagmi";
 import Layout from "@/components/Layout";
 import Link from "next/link";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
@@ -93,13 +93,49 @@ export default function CollectionOverview() {
                         </div>
 
                         {Boolean(isOwner) && (
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-4">
                                 <p className="text-blue-400 text-sm">✓ You are the owner of this collection</p>
+                                <WithdrawButton contractAddress={collectionAddress} />
                             </div>
                         )}
                     </div>
                 </div>
             </div>
         </Layout>
+    );
+}
+
+function WithdrawButton({ contractAddress }: { contractAddress: `0x${string}` }) {
+    const { writeContract, isPending, isSuccess, error } = useWriteContract();
+
+    const handleWithdraw = () => {
+        writeContract({
+            address: contractAddress,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "withdraw",
+        });
+    };
+
+    return (
+        <div>
+            <button
+                onClick={handleWithdraw}
+                disabled={isPending || isSuccess}
+                className={`w-full py-2 px-4 rounded-lg font-bold text-sm transition-all ${isSuccess
+                    ? "bg-green-500 text-white cursor-default"
+                    : isPending
+                        ? "bg-blue-600/50 text-white cursor-wait"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
+            >
+                {isSuccess ? "Withdrawn Successfully!" : isPending ? "Withdrawing..." : "Withdraw Earnings"}
+            </button>
+            {error && (
+                <p className="text-red-400 text-xs mt-2 text-center">{error.message.split("\n")[0]}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-2 text-center">
+                * 0.5% platform fee applies
+            </p>
+        </div>
     );
 }

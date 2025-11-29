@@ -8,11 +8,13 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 contract NFTFactory {
     address[] public allCollections;
     address public implementation;
+    address public platformAddress;
 
     event CollectionDeployed(address indexed collection, address indexed owner, string name, string symbol);
 
-    constructor() {
+    constructor(address _platformAddress) {
         implementation = address(new NFTCollection());
+        platformAddress = _platformAddress;
     }
 
     function deployCollection(
@@ -35,7 +37,8 @@ contract NFTFactory {
             maxPerWallet,
             mintStart,
             mintEnd,
-            msg.sender
+            msg.sender,
+            platformAddress
         );
 
         allCollections.push(clone);

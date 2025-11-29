@@ -24,7 +24,9 @@ contract NFTCollection is ERC721, Ownable {
     string private _symbol;
     
     // Slot 4: string
+    // Slot 4: string + address
     string private baseTokenURI;
+    address public platformAddress;
 
     function initialize(
         string memory name_,
@@ -35,7 +37,8 @@ contract NFTCollection is ERC721, Ownable {
         uint256 maxPerWallet_,
         uint256 mintStart_,
         uint256 mintEnd_,
-        address owner_
+        address owner_,
+        address platformAddress_
     ) external {
         require(!_initialized, "Already initialized");
         _initialized = true;
@@ -50,6 +53,7 @@ contract NFTCollection is ERC721, Ownable {
         maxPerWallet = uint96(maxPerWallet_);
         mintStart = uint64(mintStart_);
         mintEnd = uint64(mintEnd_);
+        platformAddress = platformAddress_;
     }
 
     function name() public view virtual override returns (string memory) {
@@ -122,7 +126,20 @@ contract NFTCollection is ERC721, Ownable {
     }
 
     function withdraw() external onlyOwner {
-        (bool success, ) = owner().call{value: address(this).balance}("");
-        require(success, "Withdraw failed");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No balance to withdraw");
+
+        // Calculate 0.5% platform fee
+        // 0.5% = 50 basis points (out of 10000)
+        uint256 platformFee = (balance * 50) / 10000;
+        uint256 ownerAmount = balance - platformFee;
+
+        // Send fee to platform
+        (bool feeSuccess, ) = payable(platformAddress).call{value: platformFee}("");
+        require(feeSuccess, "Platform fee transfer failed");
+
+        // Send remaining to owner
+        (bool ownerSuccess, ) = payable(owner()).call{value: ownerAmount}("");
+        require(ownerSuccess, "Owner transfer failed");
     }
 }

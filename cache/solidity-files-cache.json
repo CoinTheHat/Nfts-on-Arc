@@ -764,8 +764,8 @@
       "artifacts": []
     },
     "C:\\Users\\atknl\\Desktop\\Arc\\contracts\\NFTCollection.sol": {
-      "lastModificationDate": 1764452890354,
-      "contentHash": "fd59ed9fc4f8d9afb16f0a86c215b2d7",
+      "lastModificationDate": 1764455867043,
+      "contentHash": "eab8afccfa505fee529552cca09c0688",
       "sourceName": "contracts/NFTCollection.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -803,8 +803,8 @@
       ]
     },
     "C:\\Users\\atknl\\Desktop\\Arc\\contracts\\NFTFactory.sol": {
-      "lastModificationDate": 1764292976049,
-      "contentHash": "c2f2ed92ea93d588f02996b361a61b5d",
+      "lastModificationDate": 1764455879768,
+      "contentHash": "581065fe6616ef1d7565fbaddf463596",
       "sourceName": "contracts/NFTFactory.sol",
       "solcConfig": {
         "version": "0.8.20",

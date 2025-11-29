@@ -21,7 +21,9 @@ contract NFTFactory {
         string memory baseTokenURI,
         uint256 maxSupply,
         uint256 mintPrice,
-        uint256 maxPerWallet
+        uint256 maxPerWallet,
+        uint256 mintStart,
+        uint256 mintEnd
     ) external returns (address) {
         address clone = Clones.clone(implementation);
         NFTCollection(clone).initialize(
@@ -31,6 +33,8 @@ contract NFTFactory {
             maxSupply,
             mintPrice,
             maxPerWallet,
+            mintStart,
+            mintEnd,
             msg.sender
         );
 

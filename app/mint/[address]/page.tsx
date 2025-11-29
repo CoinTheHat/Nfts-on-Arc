@@ -44,10 +44,12 @@ export default function MintPage() {
             { ...contractConfig, functionName: "owner" },
             { ...contractConfig, functionName: "maxPerWallet" },
             { ...contractConfig, functionName: "balanceOf", args: [address] },
+            { ...contractConfig, functionName: "mintStart" },
+            { ...contractConfig, functionName: "mintEnd" },
         ],
     });
 
-    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI, owner, maxPerWallet, userBalance] = contractData || [];
+    const [name, symbol, maxSupply, totalMinted, mintPrice, collectionURI, owner, maxPerWallet, userBalance, mintStart, mintEnd] = contractData || [];
 
     useEffect(() => {
         if (isConfirmed) {
@@ -57,6 +59,17 @@ export default function MintPage() {
 
     const isWrongNetwork = isConnected && chainId !== arcTestnet.id;
     const isSoldOut = totalMinted?.result && maxSupply?.result ? totalMinted.result >= maxSupply.result : false;
+
+    // Time Logic
+    const now = Math.floor(Date.now() / 1000);
+    const start = mintStart?.result ? Number(mintStart.result) : 0;
+    const end = mintEnd?.result ? Number(mintEnd.result) : 0;
+
+    const isStarted = start === 0 || now >= start;
+    const isEnded = end !== 0 && now > end;
+    const isActive = isStarted && !isEnded;
+
+    const formatDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleString();
 
     const mintProgress = totalMinted?.result && maxSupply?.result
         ? (Number(totalMinted.result) / Number(maxSupply.result)) * 100
@@ -171,6 +184,22 @@ export default function MintPage() {
                         </div>
                     )}
 
+                    {/* Time Status */}
+                    {(start > 0 || end > 0) && (
+                        <div className="mb-6 text-center space-y-2">
+                            {start > 0 && (
+                                <p className={`text-sm ${!isStarted ? "text-yellow-400 font-bold" : "text-gray-400"}`}>
+                                    Starts: {formatDate(start)}
+                                </p>
+                            )}
+                            {end > 0 && (
+                                <p className={`text-sm ${isEnded ? "text-red-400 font-bold" : "text-gray-400"}`}>
+                                    Ends: {formatDate(end)}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     {/* Progress Bar */}
                     <div className="mb-8">
                         <div className="flex justify-between text-sm font-medium text-gray-400 mb-2">
@@ -200,7 +229,7 @@ export default function MintPage() {
                     {/* Action Area */}
                     <div className="space-y-4">
                         {/* Quantity Selector */}
-                        {mounted && isConnected && !isWrongNetwork && !isSoldOut && maxAvailable > 0 && (
+                        {mounted && isConnected && !isWrongNetwork && !isSoldOut && isActive && maxAvailable > 0 && (
                             <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                                 <label className="block text-sm font-bold text-gray-300 mb-3">Quantity</label>
                                 <div className="flex items-center gap-4">
@@ -252,8 +281,8 @@ export default function MintPage() {
                         ) : (
                             <button
                                 onClick={handleMintMultiple}
-                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || maxAvailable <= 0}
-                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || maxAvailable <= 0
+                                disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || maxAvailable <= 0 || !isActive}
+                                className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || maxAvailable <= 0 || !isActive
                                     ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                                     : isWritePending || isConfirming
                                         ? "bg-blue-600/50 text-white cursor-wait"
@@ -264,11 +293,15 @@ export default function MintPage() {
                                     ? "✓ Already Minted (Max Reached)"
                                     : isSoldOut
                                         ? "Sold Out"
-                                        : isWritePending
-                                            ? "Preparing..."
-                                            : isConfirming
-                                                ? "Minting..."
-                                                : `Mint ${quantity > 1 ? quantity + " NFTs" : ""} ${priceInUSDC === "0" ? "(Free)" : `(${(Number(priceInUSDC) * quantity).toFixed(2)} USDC)`}`
+                                        : !isStarted
+                                            ? "Mint Not Started"
+                                            : isEnded
+                                                ? "Mint Ended"
+                                                : isWritePending
+                                                    ? "Preparing..."
+                                                    : isConfirming
+                                                        ? "Minting..."
+                                                        : `Mint ${quantity > 1 ? quantity + " NFTs" : ""} ${priceInUSDC === "0" ? "(Free)" : `(${(Number(priceInUSDC) * quantity).toFixed(2)} USDC)`}`
                                 }
                             </button>
                         )}

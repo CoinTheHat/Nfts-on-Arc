@@ -5,4 +5,4 @@ export const factoryAddresses = [
 ];
 
 // Default factory for new collections
-export const factoryAddress = factoryAddresses[0];
+export const factoryAddress = "0xc83Ba8Ce4B3CD09Fc23773309E0a87D53985CC5d";

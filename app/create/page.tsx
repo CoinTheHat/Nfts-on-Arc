@@ -33,6 +33,8 @@ export default function CreateProject() {
         maxSupply: "1000",
         mintPrice: "0",
         maxPerWallet: "10",
+        mintStart: "",
+        mintEnd: "",
     });
 
     const [isDeploying, setIsDeploying] = useState(false);
@@ -115,12 +117,16 @@ export default function CreateProject() {
             const price = parseUnits(formData.mintPrice, 6); // USDC uses 6 decimals
             const maxPerWallet = BigInt(formData.maxPerWallet);
 
+            // Convert dates to unix timestamps (seconds)
+            const startTimestamp = formData.mintStart ? BigInt(Math.floor(new Date(formData.mintStart).getTime() / 1000)) : BigInt(0);
+            const endTimestamp = formData.mintEnd ? BigInt(Math.floor(new Date(formData.mintEnd).getTime() / 1000)) : BigInt(0);
+
             // Simulate
             const { request } = await publicClient!.simulateContract({
                 address: factoryAddress as `0x${string}`,
                 abi: NFTFactoryArtifact.abi,
                 functionName: "deployCollection",
-                args: [formData.name, formData.symbol, formData.imageURI, supply, price, maxPerWallet],
+                args: [formData.name, formData.symbol, formData.imageURI, supply, price, maxPerWallet, startTimestamp, endTimestamp],
                 account: client.account,
             });
 
@@ -317,6 +323,27 @@ export default function CreateProject() {
                                     onChange={(e) => setFormData({ ...formData, maxPerWallet: e.target.value })}
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Maximum number of NFTs one wallet can mint</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint Start (Optional)</label>
+                                    <input
+                                        type="datetime-local"
+                                        className="w-full bg-white text-black border border-gray-300 rounded-lg px-4 py-3"
+                                        value={formData.mintStart}
+                                        onChange={(e) => setFormData({ ...formData, mintStart: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint End (Optional)</label>
+                                    <input
+                                        type="datetime-local"
+                                        className="w-full bg-white text-black border border-gray-300 rounded-lg px-4 py-3"
+                                        value={formData.mintEnd}
+                                        onChange={(e) => setFormData({ ...formData, mintEnd: e.target.value })}
+                                    />
+                                </div>
                             </div>
 
                             {error && (

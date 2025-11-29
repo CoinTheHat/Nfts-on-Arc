@@ -10,16 +10,20 @@ contract NFTCollection is ERC721, Ownable {
     // ============ Storage Layout (Optimized for Gas) ============
     // Slot 0: bool (1 byte) + uint96 (12 bytes) + uint96 (12 bytes) + uint96 (12 bytes) = 37 bytes (2 slots)
     bool private _initialized;
-    uint96 public totalMinted;      // Max 79B tokens (more than enough)
+    uint96 public totalMinted;      // Max 79B tokens
     uint96 public maxSupply;        // Max 79B tokens
-    uint96 public mintPrice;        // Max 79B wei (~79 million ETH, plenty)
+    uint96 public mintPrice;        // Max 79B wei
     uint96 public maxPerWallet;     // Max tokens per wallet
     
-    // Slot 1-2: strings
+    // Slot 1: Timestamps (Packed)
+    uint64 public mintStart;
+    uint64 public mintEnd;
+
+    // Slot 2-3: strings
     string private _name;
     string private _symbol;
     
-    // Slot 3: string
+    // Slot 4: string
     string private baseTokenURI;
 
     function initialize(
@@ -29,6 +33,8 @@ contract NFTCollection is ERC721, Ownable {
         uint256 maxSupply_,
         uint256 mintPrice_,
         uint256 maxPerWallet_,
+        uint256 mintStart_,
+        uint256 mintEnd_,
         address owner_
     ) external {
         require(!_initialized, "Already initialized");
@@ -42,6 +48,8 @@ contract NFTCollection is ERC721, Ownable {
         maxSupply = uint96(maxSupply_);
         mintPrice = uint96(mintPrice_);
         maxPerWallet = uint96(maxPerWallet_);
+        mintStart = uint64(mintStart_);
+        mintEnd = uint64(mintEnd_);
     }
 
     function name() public view virtual override returns (string memory) {
@@ -56,6 +64,8 @@ contract NFTCollection is ERC721, Ownable {
         require(totalMinted < maxSupply, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient payment");
         require(balanceOf(msg.sender) < maxPerWallet, "Max per wallet reached");
+        require(block.timestamp >= mintStart, "Mint not started");
+        require(mintEnd == 0 || block.timestamp <= mintEnd, "Mint ended");
         
         uint256 tokenId;
         unchecked {
@@ -70,6 +80,8 @@ contract NFTCollection is ERC721, Ownable {
         require(totalMinted + quantity <= maxSupply, "Exceeds max supply");
         require(balanceOf(msg.sender) + quantity <= maxPerWallet, "Exceeds max per wallet");
         require(msg.value >= mintPrice * quantity, "Insufficient payment");
+        require(block.timestamp >= mintStart, "Mint not started");
+        require(mintEnd == 0 || block.timestamp <= mintEnd, "Mint ended");
 
         uint256 nextId = totalMinted;
         unchecked {

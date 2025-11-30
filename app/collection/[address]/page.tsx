@@ -1,3 +1,13 @@
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
+import { useReadContract, useAccount, useWriteContract } from "wagmi";
+import Layout from "@/components/Layout";
+import Link from "next/link";
+import NFTCollectionArtifact from "@/lib/NFTCollection.json";
+import { Abi } from "viem";
+import { CURRENCY_SYMBOL } from "@/lib/constants";
+
 export default function CollectionOverview() {
     const params = useParams();
     const router = useRouter();

@@ -19,6 +19,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             <Link href="/dashboard" className="hover:text-white transition-colors">
                                 Dashboard
                             </Link>
+                            <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                                Faucet
+                            </a>
                         </nav>
                     </div>
                     <div className="flex items-center gap-4">

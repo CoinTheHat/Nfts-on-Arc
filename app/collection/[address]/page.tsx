@@ -74,7 +74,7 @@ export default function CollectionOverview() {
                         <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                             <p className="text-gray-400 text-sm mb-1">Mint Price</p>
                             <p className="text-3xl font-bold text-green-400">
-                                {mintPrice ? (Number(mintPrice) / 1e6).toFixed(2) : "0"} USDC
+                                {mintPrice ? (Number(mintPrice) / 1e18).toFixed(4) : "0"} ARC
                             </p>
                         </div>
 

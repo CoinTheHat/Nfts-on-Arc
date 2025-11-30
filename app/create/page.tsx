@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useWalletClient, usePublicClient, useChainId, useSwitchChain } from "wagmi";
 import { getWalletClient } from "wagmi/actions";
-import { parseUnits } from "viem";
+import { parseUnits, parseEther } from "viem";
 import Layout from "@/components/Layout";
 import { arcTestnet } from "@/lib/arcChain";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
@@ -114,7 +114,7 @@ export default function CreateProject() {
             if (!client) throw new Error("Wallet connection failed. Please try reconnecting.");
 
             const supply = BigInt(formData.maxSupply);
-            const price = parseUnits(formData.mintPrice, 6); // USDC uses 6 decimals
+            const price = parseEther(formData.mintPrice); // ARC uses 18 decimals
             const maxPerWallet = BigInt(formData.maxPerWallet);
 
             // Convert dates to unix timestamps (seconds)
@@ -299,7 +299,7 @@ export default function CreateProject() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint Price (USDC)</label>
+                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint Price (ARC)</label>
                                     <input
                                         type="number"
                                         required

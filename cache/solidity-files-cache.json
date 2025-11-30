@@ -764,8 +764,8 @@
       "artifacts": []
     },
     "C:\\Users\\atknl\\Desktop\\Arc\\contracts\\NFTCollection.sol": {
-      "lastModificationDate": 1764457145054,
-      "contentHash": "f43664031150efc2f05245fd8767df25",
+      "lastModificationDate": 1764461928904,
+      "contentHash": "49429b40b65ca59e37521aebecbf152d",
       "sourceName": "contracts/NFTCollection.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -792,7 +792,7 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "erc721a/contracts/ERC721A.sol",
         "@openzeppelin/contracts/access/Ownable.sol"
       ],
       "versionPragmas": [
@@ -952,6 +952,81 @@
       ],
       "artifacts": [
         "Create2"
+      ]
+    },
+    "C:\\Users\\atknl\\Desktop\\Arc\\node_modules\\erc721a\\contracts\\ERC721A.sol": {
+      "lastModificationDate": 1764461796933,
+      "contentHash": "f00e8b038a7d958f397c9fb8d107ec1c",
+      "sourceName": "erc721a/contracts/ERC721A.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC721A.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.4"
+      ],
+      "artifacts": [
+        "ERC721A",
+        "ERC721A__IERC721Receiver"
+      ]
+    },
+    "C:\\Users\\atknl\\Desktop\\Arc\\node_modules\\erc721a\\contracts\\IERC721A.sol": {
+      "lastModificationDate": 1764461796941,
+      "contentHash": "f6791e37b41ad9fa583adb9845c17d51",
+      "sourceName": "erc721a/contracts/IERC721A.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.4"
+      ],
+      "artifacts": [
+        "IERC721A"
       ]
     }
   }

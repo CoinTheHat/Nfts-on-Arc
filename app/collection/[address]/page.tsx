@@ -1,11 +1,11 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useReadContract, useAccount, useWriteContract } from "wagmi";
+import { useReadContract, useAccount, useWriteContract, useBalance } from "wagmi";
 import Layout from "@/components/Layout";
 import Link from "next/link";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { Abi } from "viem";
+import { Abi, formatEther } from "viem";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 export default function CollectionOverview() {
@@ -107,6 +107,7 @@ export default function CollectionOverview() {
 }
 
 function WithdrawButton({ contractAddress }: { contractAddress: `0x${string}` }) {
+    const { data: balance } = useBalance({ address: contractAddress });
     const { writeContract, isPending, isSuccess, error } = useWriteContract();
 
     const handleWithdraw = () => {
@@ -119,14 +120,23 @@ function WithdrawButton({ contractAddress }: { contractAddress: `0x${string}` })
 
     return (
         <div>
+            <div className="mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700 flex justify-between items-center">
+                <span className="text-gray-400 text-sm">Available Earnings</span>
+                <span className="text-xl font-bold text-green-400">
+                    {balance ? Number(formatEther(balance.value)).toFixed(4) : "0.0000"} {CURRENCY_SYMBOL}
+                </span>
+            </div>
+
             <button
                 onClick={handleWithdraw}
-                disabled={isPending || isSuccess}
-                className={`w-full py-2 px-4 rounded-lg font-bold text-sm transition-all ${isSuccess
+                disabled={isPending || isSuccess || !balance || balance.value === 0n}
+                className={`w-full py-3 px-4 rounded-lg font-bold text-sm transition-all ${isSuccess
                     ? "bg-green-500 text-white cursor-default"
                     : isPending
                         ? "bg-blue-600/50 text-white cursor-wait"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                        : (!balance || balance.value === 0n)
+                            ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
                     }`}
             >
                 {isSuccess ? "Withdrawn Successfully!" : isPending ? "Withdrawing..." : "Withdraw Earnings"}

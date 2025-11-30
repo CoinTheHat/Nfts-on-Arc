@@ -129,12 +129,12 @@ function WithdrawButton({ contractAddress }: { contractAddress: `0x${string}` })
 
             <button
                 onClick={handleWithdraw}
-                disabled={isPending || isSuccess || !balance || balance.value === 0n}
+                disabled={isPending || isSuccess || !balance || balance.value === BigInt(0)}
                 className={`w-full py-3 px-4 rounded-lg font-bold text-sm transition-all ${isSuccess
                     ? "bg-green-500 text-white cursor-default"
                     : isPending
                         ? "bg-blue-600/50 text-white cursor-wait"
-                        : (!balance || balance.value === 0n)
+                        : (!balance || balance.value === BigInt(0))
                             ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700 text-white"
                     }`}

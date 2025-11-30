@@ -10,6 +10,7 @@ import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import { factoryAddress as initialFactoryAddress } from "@/lib/factoryAddress";
 import { config } from "@/lib/wagmiClient";
 import Link from "next/link";
+import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 export default function CreateProject() {
     const { isConnected, address } = useAccount();
@@ -299,7 +300,7 @@ export default function CreateProject() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint Price (ARC)</label>
+                                    <label className="block text-sm font-bold text-gray-300 mb-2">Mint Price ({CURRENCY_SYMBOL})</label>
                                     <input
                                         type="number"
                                         required

@@ -9,6 +9,7 @@ import { arcTestnet } from "@/lib/arcChain";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import Link from "next/link";
 import { useUsername, formatAddress } from "@/lib/useUsername";
+import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 export default function MintPage() {
     const params = useParams();
@@ -75,7 +76,7 @@ export default function MintPage() {
         ? (Number(totalMinted.result) / Number(maxSupply.result)) * 100
         : 0;
 
-    const priceInARC = mintPrice?.result ? formatEther(mintPrice.result as bigint) : "0";
+    const priceLabel = mintPrice?.result ? formatEther(mintPrice.result as bigint) : "0";
     const maxAvailable = maxPerWallet?.result ? Number(maxPerWallet.result) - Number(userBalance?.result || 0) : 1;
 
     // Fetch username for collection owner
@@ -221,7 +222,7 @@ export default function MintPage() {
                         <div className="inline-block bg-gray-800 px-4 py-2 rounded-lg">
                             <span className="text-gray-400 text-sm uppercase tracking-wider">Price per NFT</span>
                             <div className="text-2xl font-bold text-white">
-                                {priceInARC === "0" ? "Free" : `${priceInARC} ARC`}
+                                {priceLabel === "0" ? "Free" : `${priceLabel} ${CURRENCY_SYMBOL}`}
                             </div>
                         </div>
                     </div>
@@ -261,7 +262,7 @@ export default function MintPage() {
                                         +
                                     </button>
                                     <div className="flex-1 text-right">
-                                        <p className="text-sm text-gray-400">Total: <span className="text-white font-bold">{(Number(priceInARC) * quantity).toFixed(4)} ARC</span></p>
+                                        <p className="text-sm text-gray-400">Total: <span className="text-white font-bold">{(Number(priceLabel) * quantity).toFixed(4)} {CURRENCY_SYMBOL}</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -301,7 +302,7 @@ export default function MintPage() {
                                                     ? "Preparing..."
                                                     : isConfirming
                                                         ? "Minting..."
-                                                        : `Mint ${quantity > 1 ? quantity + " NFTs" : ""} ${priceInARC === "0" ? "(Free)" : `(${(Number(priceInARC) * quantity).toFixed(4)} ARC)`}`
+                                                        : `Mint ${quantity > 1 ? quantity + " NFTs" : ""} ${priceLabel === "0" ? "(Free)" : `(${(Number(priceLabel) * quantity).toFixed(4)} ${CURRENCY_SYMBOL})`}`
                                 }
                             </button>
                         )}

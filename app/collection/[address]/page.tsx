@@ -1,12 +1,3 @@
-"use client";
-
-import { useParams, useRouter } from "next/navigation";
-import { useReadContract, useAccount, useWriteContract } from "wagmi";
-import Layout from "@/components/Layout";
-import Link from "next/link";
-import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { Abi } from "viem";
-
 export default function CollectionOverview() {
     const params = useParams();
     const router = useRouter();
@@ -74,7 +65,7 @@ export default function CollectionOverview() {
                         <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                             <p className="text-gray-400 text-sm mb-1">Mint Price</p>
                             <p className="text-3xl font-bold text-green-400">
-                                {mintPrice ? (Number(mintPrice) / 1e18).toFixed(4) : "0"} ARC
+                                {mintPrice ? (Number(mintPrice) / 1e18).toFixed(4) : "0"} {CURRENCY_SYMBOL}
                             </p>
                         </div>
 

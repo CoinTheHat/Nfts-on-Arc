@@ -9,7 +9,7 @@ import { useReadContracts } from "wagmi";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { factoryAddresses } from "@/lib/factoryAddress";
-import { Abi } from "viem";
+import { Abi, formatEther } from "viem";
 import Link from "next/link";
 
 type CollectionStatus = 'verified' | 'hidden' | 'neutral';
@@ -83,6 +83,55 @@ export default function AdminPage() {
         })),
     });
 
+    // Fetch additional data for stats
+    const { data: collectionStats } = useReadContracts({
+        contracts: allCollections.flatMap((addr) => [
+            {
+                address: addr as `0x${string}`,
+                abi: NFTCollectionArtifact.abi as unknown as Abi,
+                functionName: "totalMinted",
+            },
+            {
+                address: addr as `0x${string}`,
+                abi: NFTCollectionArtifact.abi as unknown as Abi,
+                functionName: "owner",
+            },
+            {
+                address: addr as `0x${string}`,
+                abi: NFTCollectionArtifact.abi as unknown as Abi,
+                functionName: "mintPrice",
+            }
+        ]),
+    });
+
+    // Calculate Statistics
+    const totalCollections = allCollections.length;
+    let totalMinted = 0;
+    let totalVolume = BigInt(0);
+    const uniqueCreators = new Set<string>();
+
+    if (collectionStats) {
+        for (let i = 0; i < allCollections.length; i++) {
+            const mintedResult = collectionStats[i * 3];
+            const ownerResult = collectionStats[i * 3 + 1];
+            const priceResult = collectionStats[i * 3 + 2];
+
+            if (mintedResult.status === "success") {
+                totalMinted += Number(mintedResult.result);
+            }
+
+            if (ownerResult.status === "success") {
+                uniqueCreators.add(String(ownerResult.result).toLowerCase());
+            }
+
+            if (mintedResult.status === "success" && priceResult.status === "success") {
+                const minted = BigInt(mintedResult.result as unknown as number);
+                const price = BigInt(priceResult.result as unknown as number);
+                totalVolume += minted * price;
+            }
+        }
+    }
+
     const updateStatus = async (collectionAddress: string, status: CollectionStatus) => {
         const { error } = await supabase
             .from('collection_moderation')
@@ -130,6 +179,26 @@ export default function AdminPage() {
         <Layout>
             <div className="max-w-6xl mx-auto py-12 px-4">
                 <h1 className="text-4xl font-bold mb-8">Admin Panel 🛡️</h1>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
+                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Collections</h3>
+                        <p className="text-3xl font-bold text-white">{totalCollections}</p>
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
+                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Minted</h3>
+                        <p className="text-3xl font-bold text-blue-400">{totalMinted}</p>
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
+                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Unique Creators</h3>
+                        <p className="text-3xl font-bold text-purple-400">{uniqueCreators.size}</p>
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
+                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Volume</h3>
+                        <p className="text-3xl font-bold text-green-400">{formatEther(totalVolume)} <span className="text-lg text-gray-500">ETH</span></p>
+                    </div>
+                </div>
 
                 <div className="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto">

@@ -11,6 +11,8 @@ import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { factoryAddresses } from "@/lib/factoryAddress";
 import { Abi } from "viem";
 
+import NFTImage from "@/components/NFTImage";
+
 export default function UserProfilePage() {
     const params = useParams();
     const address = params.address as string;
@@ -156,13 +158,20 @@ export default function UserProfilePage() {
                             ) : (
                                 <div className="grid md:grid-cols-3 gap-4">
                                     {createdCollections.map((col) => (
-                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-xl overflow-hidden transition-all">
-                                            {col.imageUrl && (
-                                                <img src={col.imageUrl} alt={String(col.name)} className="w-full h-40 object-cover" />
-                                            )}
-                                            <div className="p-4">
-                                                <h3 className="font-bold truncate">{String(col.name || "Untitled")}</h3>
-                                                <p className="text-xs text-gray-500 font-mono truncate">{col.address}</p>
+                                        <Link key={col.address} href={`/mint/${col.address}`} className="block group">
+                                            <div className="bg-gray-900/50 border border-gray-800 group-hover:border-blue-500/50 rounded-xl overflow-hidden transition-all">
+                                                <div className="h-40 bg-gray-800 relative">
+                                                    <NFTImage
+                                                        src={col.imageUrl}
+                                                        alt={String(col.name || "Collection")}
+                                                        fill
+                                                        className="w-full h-full"
+                                                    />
+                                                </div>
+                                                <div className="p-4">
+                                                    <h3 className="font-bold truncate">{String(col.name || "Untitled")}</h3>
+                                                    <p className="text-xs text-gray-500 font-mono truncate">{col.address}</p>
+                                                </div>
                                             </div>
                                         </Link>
                                     ))}
@@ -178,13 +187,20 @@ export default function UserProfilePage() {
                             ) : (
                                 <div className="grid md:grid-cols-4 gap-4">
                                     {mintedCollections.map((col) => (
-                                        <Link key={col.address} href={`/mint/${col.address}`} className="bg-gray-900/50 border border-gray-800 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all">
-                                            {col.imageUrl && (
-                                                <img src={col.imageUrl} alt={String(col.name)} className="w-full h-32 object-cover" />
-                                            )}
-                                            <div className="p-4">
-                                                <h4 className="font-bold text-sm truncate">{String(col.name || "Untitled")}</h4>
-                                                <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>
+                                        <Link key={col.address} href={`/mint/${col.address}`} className="block group">
+                                            <div className="bg-gray-900/50 border border-gray-800 group-hover:border-purple-500/50 rounded-xl overflow-hidden transition-all">
+                                                <div className="h-32 bg-gray-800 relative">
+                                                    <NFTImage
+                                                        src={col.imageUrl}
+                                                        alt={String(col.name || "NFT")}
+                                                        fill
+                                                        className="w-full h-full"
+                                                    />
+                                                </div>
+                                                <div className="p-4">
+                                                    <h4 className="font-bold text-sm truncate">{String(col.name || "Untitled")}</h4>
+                                                    <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>
+                                                </div>
                                             </div>
                                         </Link>
                                     ))}

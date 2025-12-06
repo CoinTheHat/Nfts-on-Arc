@@ -10,6 +10,7 @@ import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import Link from "next/link";
 import { useUsername, formatAddress } from "@/lib/useUsername";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
+import NFTImage from "@/components/NFTImage";
 
 export default function MintPage() {
     const params = useParams();
@@ -153,14 +154,12 @@ export default function MintPage() {
 
                     {/* Collection Image */}
                     {collectionURI?.status === "success" && String(collectionURI.result) && (
-                        <div className="mb-8 mx-auto max-w-md aspect-square rounded-2xl overflow-hidden bg-gray-900 border-2 border-gray-800 flex items-center justify-center">
-                            <img
+                        <div className="mb-8 mx-auto max-w-md aspect-square rounded-2xl overflow-hidden bg-gray-900 border-2 border-gray-800 flex items-center justify-center relative">
+                            <NFTImage
                                 src={String(collectionURI.result)}
                                 alt={name?.status === "success" ? String(name.result) : "NFT Collection"}
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                }}
+                                fill
+                                className="w-full h-full"
                             />
                         </div>
                     )}
@@ -284,10 +283,10 @@ export default function MintPage() {
                                 onClick={handleMintMultiple}
                                 disabled={isWritePending || isConfirming || isSoldOut || !Boolean(name?.result) || maxAvailable <= 0 || !isActive}
                                 className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${isSoldOut || maxAvailable <= 0 || !isActive
-                                    ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                                    : isWritePending || isConfirming
-                                        ? "bg-blue-600/50 text-white cursor-wait"
-                                        : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
+                                        ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+                                        : isWritePending || isConfirming
+                                            ? "bg-blue-600/50 text-white cursor-wait"
+                                            : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:shadow-blue-500/25 text-white"
                                     }`}
                             >
                                 {maxAvailable <= 0

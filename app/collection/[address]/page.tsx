@@ -7,6 +7,7 @@ import Link from "next/link";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { Abi, formatEther } from "viem";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
+import NFTImage from "@/components/NFTImage";
 
 export default function CollectionOverview() {
     const params = useParams();
@@ -49,11 +50,12 @@ export default function CollectionOverview() {
                     {/* Left: Image */}
                     <div>
                         {Boolean(collectionURI) && (
-                            <div className="aspect-square rounded-2xl overflow-hidden bg-gray-900 border-2 border-gray-800">
-                                <img
+                            <div className="aspect-square rounded-2xl overflow-hidden bg-gray-900 border-2 border-gray-800 relative">
+                                <NFTImage
                                     src={String(collectionURI)}
                                     alt={String(name)}
-                                    className="w-full h-full object-contain"
+                                    fill
+                                    className="w-full h-full"
                                 />
                             </div>
                         )}

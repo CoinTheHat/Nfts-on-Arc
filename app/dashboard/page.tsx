@@ -7,6 +7,7 @@ import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
 import { Abi } from "viem";
+import NFTImage from "@/components/NFTImage";
 
 export default function Dashboard() {
     const { address, isConnected } = useAccount();
@@ -107,20 +108,13 @@ export default function Dashboard() {
                         {myCollections.map((col) => (
                             <Link key={col.address} href={`/collection/${col.address}`} className="block group">
                                 <div className="bg-gray-900/50 border border-gray-800 group-hover:border-blue-500/50 rounded-xl p-6 transition-all">
-                                    <div className="h-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 overflow-hidden">
-                                        {col.imageUrl ? (
-                                            <img
-                                                src={col.imageUrl}
-                                                alt={String(col.name || "Collection")}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                    e.currentTarget.parentElement!.innerHTML = '<div class="flex items-center justify-center h-full text-4xl">🎨</div>';
-                                                }}
-                                            />
-                                        ) : (
-                                            <div className="flex items-center justify-center h-full text-4xl">🎨</div>
-                                        )}
+                                    <div className="h-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 overflow-hidden relative">
+                                        <NFTImage
+                                            src={col.imageUrl}
+                                            alt={String(col.name || "Collection")}
+                                            fill
+                                            className="w-full h-full"
+                                        />
                                     </div>
                                     <h3 className="text-xl font-bold mb-1">{String(col.name || "Untitled")}</h3>
                                     <p className="text-sm text-gray-500 font-mono truncate">{col.address}</p>
@@ -142,20 +136,13 @@ export default function Dashboard() {
                             {mintedCollections.map((col) => (
                                 <Link key={col.address} href={`/mint/${col.address}`} className="block group">
                                     <div className="bg-gray-900/50 border border-gray-800 group-hover:border-purple-500/50 rounded-xl p-4 transition-all">
-                                        <div className="h-24 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg mb-3 overflow-hidden">
-                                            {col.imageUrl ? (
-                                                <img
-                                                    src={col.imageUrl}
-                                                    alt={String(col.name || "NFT")}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
-                                                        e.currentTarget.parentElement!.innerHTML = '<div class="flex items-center justify-center h-full text-3xl">🖼️</div>';
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-center h-full text-3xl">🖼️</div>
-                                            )}
+                                        <div className="h-24 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg mb-3 overflow-hidden relative">
+                                            <NFTImage
+                                                src={col.imageUrl}
+                                                alt={String(col.name || "NFT")}
+                                                fill
+                                                className="w-full h-full"
+                                            />
                                         </div>
                                         <h4 className="font-bold text-sm mb-1 truncate">{String(col.name || "Untitled")}</h4>
                                         <p className="text-xs text-gray-500">Owned: {col.balance?.toString()}</p>

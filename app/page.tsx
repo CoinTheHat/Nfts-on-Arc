@@ -8,6 +8,7 @@ import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
 import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
 import { supabase } from "@/lib/supabaseClient";
+import NFTImage from "@/components/NFTImage";
 
 import { Abi } from "viem";
 
@@ -137,20 +138,13 @@ export default function Home() {
                   <div className="absolute top-0 right-0 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
                     VERIFIED
                   </div>
-                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl">🎨</span>';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-4xl">🎨</span>
-                    )}
+                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform relative">
+                    <NFTImage
+                      src={imageUrl}
+                      alt={name}
+                      fill
+                      className="w-full h-full"
+                    />
                   </div>
                   <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
                   <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>
@@ -187,20 +181,13 @@ export default function Home() {
                   href={`/mint/${addr}`}
                   className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-2xl p-6 transition-all hover:-translate-y-1 group"
                 >
-                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl">🎨</span>';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-4xl">🎨</span>
-                    )}
+                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform relative">
+                    <NFTImage
+                      src={imageUrl}
+                      alt={name}
+                      fill
+                      className="w-full h-full"
+                    />
                   </div>
                   <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
                   <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>

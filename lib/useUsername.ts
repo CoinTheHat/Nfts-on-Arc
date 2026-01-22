@@ -22,6 +22,7 @@ export const useUsername = (address: string | undefined) => {
 
             setUsername(data?.username || null);
             setAvatarUrl(data?.avatar_url || null);
+            console.log("[useUsername] Fetched:", { username: data?.username, avatarUrl: data?.avatar_url });
         } catch (e) {
             setUsername(null);
             setAvatarUrl(null);

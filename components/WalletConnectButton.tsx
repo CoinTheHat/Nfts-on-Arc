@@ -25,6 +25,10 @@ export default function WalletConnectButton() {
         setMounted(true);
     }, []);
 
+    useEffect(() => {
+        console.log("[WalletButton] avatarUrl changed:", avatarUrl);
+    }, [avatarUrl]);
+
     // Simple click outside handler
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

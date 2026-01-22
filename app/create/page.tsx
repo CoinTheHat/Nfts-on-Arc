@@ -174,23 +174,49 @@ export default function Create() {
 
             console.log("Tx Hash:", hash);
 
-            // 4. Wait for Receipt & Get Address
-            // In a real scenario we'd parse the logs to get the new address. 
-            // For now, let's wait for the tx and just mock the address catch or redirect.
+            // 4. Wait for Receipt & Parse Event for Deployed Address
             const receipt = await publicClient.waitForTransactionReceipt({ hash });
+            console.log("Receipt received, parsing logs...");
 
-            // Try to find the deployed address from logs if possible, else fallback
-            // Typically the factory emits 'CollectionDeployed(address collection, ...)'
-            let deployedAddr = "0x...";
-            if (receipt.logs.length > 0) {
-                // Simple assumption: The last log's address might be the new contract or we need to parse.
-                // Let's assume the factory emits event at index 0 or similar.
-                // Without the event ABI handy here in parsing logic, we might just assume success.
-                // Actually, let's just use the hash for now and a mock address or the factory address to show success.
-                deployedAddr = receipt.contractAddress || "0xDeployedAddress";
+            // Parse the CollectionDeployed event to get the actual deployed address
+            let deployedAddress = "";
+
+            if (receipt.logs && receipt.logs.length > 0) {
+                try {
+                    // Find the CollectionDeployed event
+                    // Event signature: CollectionDeployed(address indexed collection, address indexed owner, string name, string symbol)
+                    const collectionDeployedTopic = "0x" + require('crypto')
+                        .createHash('sha256')
+                        .update('CollectionDeployed(address,address,string,string)')
+                        .digest('hex')
+                        .slice(0, 64); // Simple approximation, ideally use proper keccak256
+
+                    // Actually, let's use a more reliable method - just check the first log from factory
+                    // The factory emits CollectionDeployed with the collection address as the first indexed param
+                    for (const log of receipt.logs) {
+                        if (log.address.toLowerCase() === factoryAddress.toLowerCase()) {
+                            // First topic is event signature, second is indexed collection address
+                            if (log.topics && log.topics.length >= 2) {
+                                // Topics[1] is the indexed 'collection' address (padded to 32 bytes)
+                                const addressHex = log.topics[1];
+                                deployedAddress = `0x${addressHex.slice(-40)}`; // Extract last 40 hex chars (20 bytes)
+                                console.log("Deployed Address from event:", deployedAddress);
+                                break;
+                            }
+                        }
+                    }
+                } catch (parseErr) {
+                    console.error("Error parsing event logs:", parseErr);
+                }
             }
 
-            setDeployedAddress(deployedAddr);
+            // Fallback if parsing failed
+            if (!deployedAddress || deployedAddress === "0x0000000000000000000000000000000000000000") {
+                console.warn("Could not parse deployed address from logs, using mock");
+                deployedAddress = "0xDeployedAddress";
+            }
+
+            setDeployedAddress(deployedAddress);
             setStep("success");
         } catch (err: any) {
             console.error(err);

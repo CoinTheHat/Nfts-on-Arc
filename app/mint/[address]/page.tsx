@@ -182,7 +182,7 @@ export default function MintPage() {
                                     src={collectionURI?.result as string}
                                     alt={name?.result as string}
                                     fill
-                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className="object-contain transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute top-4 left-4">
                                     <div className="bg-black/40 backdrop-blur-md border border-white/10 text-white rounded-full px-3 py-1 text-xs font-bold">

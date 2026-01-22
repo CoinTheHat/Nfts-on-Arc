@@ -236,7 +236,7 @@ export default function Create() {
 
         } catch (error) {
             console.error(error);
-            toast("Failed to generate content. Try again.", "error");
+            toast.error("Failed to generate content. Try again.");
         } finally {
             setIsGenerating(false);
         }

@@ -72,48 +72,16 @@ export default function Create() {
         setDeployError("");
 
         try {
-            // 1. Image Persistence Logic
-            // We need to convert the ephemeral/external URL into a persistent Supabase URL.
+            // 1. Image URL Logic (SIMPLIFIED FOR HACKATHON)
+            // Use DiceBear directly - it's permanent, public, and deterministic
             let finalURI = "";
 
-            // Determine the source image URL (DiceBear or Preview)
-            let imageSource = previewUrl;
-            if (!imageSource || (!imageSource.startsWith('http') && !imageSource.startsWith('blob'))) {
-                // Fallback generation if no image exists
-                imageSource = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
-            }
-
-            try {
-                // A) Fetch the image data (works for both DiceBear http URLs and internal Blob URLs)
-                const response = await fetch(imageSource);
-                const blob = await response.blob();
-
-                // B) Create a File object for upload
-                const fileToUpload = new File([blob], "collection-image.png", { type: "image/png" });
-
-                // C) Upload to our API (which saves to Supabase)
-                const uploadFormData = new FormData();
-                uploadFormData.append("file", fileToUpload);
-
-                const uploadRes = await fetch("/api/upload", {
-                    method: "POST",
-                    body: uploadFormData,
-                });
-
-                if (!uploadRes.ok) throw new Error("Failed to upload image to storage");
-
-                const uploadData = await uploadRes.json();
-                finalURI = uploadData.url; // The permanent Supabase URL
-
-            } catch (uploadErr) {
-                console.error("Image upload failed, falling back to direct URL", uploadErr);
-                // If upload fails (e.g. Supabase bucket not set up), fall back to the external URL
-                // BUT if it's a blob url (local), we must fallback to a public placeholder.
-                if (imageSource && imageSource.startsWith('blob:')) {
-                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
-                } else {
-                    finalURI = imageSource;
-                }
+            if (previewUrl && previewUrl.startsWith('http') && previewUrl.includes('dicebear')) {
+                // User clicked "AI Generate" - use that DiceBear URL directly
+                finalURI = previewUrl;
+            } else {
+                // No AI generation or manual upload: create deterministic DiceBear URL
+                finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
             }
 
             const baseURI = finalURI;

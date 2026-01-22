@@ -12,17 +12,19 @@ export async function POST(req: Request) {
         const seed = encodeURIComponent(prompt);
 
         // Use Pollinations.ai for REAL AI Image Generation (Stable Diffusion)
-        // No API Key required, free for usage.
         const encodedPrompt = encodeURIComponent(prompt + " high quality, digital art, highly detailed, 8k, cyberpunk style, vivid colors");
-        // Random seed to ensure uniqueness even for same prompt
         const randomSeed = Math.floor(Math.random() * 1000000);
         const imageUrl = `https://pollinations.ai/p/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`;
 
-        // Simulate a slight delay to feel like "AI Processing"
-        // Pollinations is fast but give it a sec to seem "impressed"
-        await new Promise(r => setTimeout(r, 1000));
+        // Server-side Fetch & Proxy (Fixes CORS/Broken Image issues)
+        const imageRes = await fetch(imageUrl);
+        if (!imageRes.ok) throw new Error("Failed to fetch image from AI provider");
 
-        return NextResponse.json({ url: imageUrl });
+        const arrayBuffer = await imageRes.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        const dataUrl = `data:image/png;base64,${base64}`;
+
+        return NextResponse.json({ url: dataUrl });
 
     } catch (error) {
         console.error("Image Gen Error:", error);

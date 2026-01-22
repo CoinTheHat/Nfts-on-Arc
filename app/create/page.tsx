@@ -189,11 +189,12 @@ export default function Create() {
         try {
             // Enhanced Random Generation Logic
             const themes = [
-                { name: "Cyberpunk", adj: ["Neon", "Digital", "Glitch", "Synth", "Future", "Chrome"], nouns: ["Samurai", "City", "Soul", "Nexus", "Droid", "Blade"] },
-                { name: "Ethereal", adj: ["Mystic", "Dream", "Void", "Astral", "Spirit", "Celestial"], nouns: ["Walker", "Realm", "Echo", "Shade", "Wisp", "Gate"] },
-                { name: "Abstract", adj: ["Geometric", "Fluid", "Chaos", "Order", "Prism", "Fractal"], nouns: ["Forms", "Flow", "Theory", "Vector", "Mind", "Loop"] },
-                { name: "Retro", adj: ["Pixel", "8-Bit", "Arcade", "Vapor", "Nostalgia", "Analog"], nouns: ["Punk", "Hero", "Glitch", "Wave", "Cartridge", "Signal"] },
-                { name: "Nature", adj: ["Bloom", "Terra", "Solar", "Lunar", "Wild", "Verdant"], nouns: ["Fauna", "Flora", "Guardian", "Essence", "Root", "Canopy"] }
+                { name: "Cyberpunk", adj: ["Neon", "Digital", "Glitch", "Synth", "Future", "Chrome", "Quantum", "Holo"], nouns: ["Samurai", "City", "Soul", "Nexus", "Droid", "Blade", "Runner", "Protocol"] },
+                { name: "Ethereal", adj: ["Mystic", "Dream", "Void", "Astral", "Spirit", "Celestial", "Arcane", "Divine"], nouns: ["Walker", "Realm", "Echo", "Shade", "Wisp", "Gate", "Oracle", "Phantom"] },
+                { name: "Abstract", adj: ["Geometric", "Fluid", "Chaos", "Order", "Prism", "Fractal", "Vivid", "Kinetic"], nouns: ["Forms", "Flow", "Theory", "Vector", "Mind", "Loop", "Shape", "Dimension"] },
+                { name: "Retro", adj: ["Pixel", "8-Bit", "Arcade", "Vapor", "Nostalgia", "Analog", "Vintage", "CRT"], nouns: ["Punk", "Hero", "Glitch", "Wave", "Cartridge", "Signal", "Tape", "Memory"] },
+                { name: "Nature", adj: ["Bloom", "Terra", "Solar", "Lunar", "Wild", "Verdant", "Gaia", "Feral"], nouns: ["Fauna", "Flora", "Guardian", "Essence", "Root", "Canopy", "Grove", "Beast"] },
+                { name: "Cosmic", adj: ["Stellar", "Nebula", "Void", "Galactic", "Infinite", "Dark", "Space", "Nova"], nouns: ["Traveler", "Dust", "System", "Cluster", "Orbit", "Horizon", "Odyssey", "Matter"] }
             ];
 
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];

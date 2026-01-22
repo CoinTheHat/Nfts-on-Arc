@@ -1,26 +1,178 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Premium Neutral Theme - Cloud & Slate (Soft Tinted Light) */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Backgrounds: Never Pure White */
+  --color-bg-base: #F4F6FB;
+  /* Cloud Tint - Main Page BG */
+  --color-bg-alt: #EEF2F8;
+  /* Slightly darker cloud for sections/footer */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Surfaces: White is reserved for cards */
+  --color-surface-1: #FFFFFF;
+  /* Main Card Surface */
+  --color-surface-2: #FFFFFF;
+  /* Elevated / Modal */
+  --color-surface-3: #F8FAFC;
+  /* Hover / Input BG */
+
+  /* Border Tokens - Very Subtle */
+  --color-border-subtle: rgba(15, 23, 42, 0.05);
+  --color-border-default: rgba(15, 23, 42, 0.08);
+  /* Light Mode Border */
+  --color-border-strong: rgba(15, 23, 42, 0.15);
+  --color-border-accent: rgba(79, 122, 255, 0.5);
+
+  /* Accent Colors (Minimal Gradient) */
+  --color-primary: #0F172A;
+  /* Slate 900 for Primary Actions */
+  --color-primary-hover: #1E293B;
+  --color-primary-muted: rgba(15, 23, 42, 0.04);
+
+  --color-accent: #3B82F6;
+  /* Single blue accent for active states */
+
+  --color-secondary: #64748B;
+  --color-secondary-muted: #F1F5F9;
+
+  /* Status Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  /* Typography Colors - High Contrast Slate */
+  --color-text-primary: #0F172A;
+  /* Headline: Slate 900 */
+  --color-text-secondary: #334155;
+  /* Body: Slate 700 */
+  --color-text-tertiary: #64748B;
+  /* Muted: Slate 500 */
+  --color-text-inverted: #FFFFFF;
+
+  /* Legacy aliases */
+  --color-background: #F4F6FB;
+  --color-foreground: #0F172A;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8FAFC;
+  --color-card: #FFFFFF;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-hover: rgba(15, 23, 42, 0.15);
+
+  /* Shadow Tokens - Clean & Soft */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  /* Slight lift */
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  /* Card Base */
+  --shadow-lift: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+  /* Hover */
+  --shadow-accent: 0 0 0 0 transparent;
+  /* Minimized glow */
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.4s ease-out;
+  --animate-scale-in: scaleIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
+:root {
+  --background: #F4F6FB;
+  --foreground: #0F172A;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  /* Subtlety is key - removed heavy gradients */
+  background-image: none;
+}
+
+/* Custom Scrollbar - Slate Theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Utility Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  /* Frosty border */
+  box-shadow: var(--shadow-sm);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #4f7aff 0%, #8b5cf6 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-3px);
+  border-color: var(--color-border-hover);
 }

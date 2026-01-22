@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect } from "react";
+import { Skeleton } from "./ui/Skeleton";
 
 const IPFS_GATEWAYS = [
     "https://ipfs.io/ipfs/",
@@ -34,11 +34,15 @@ export default function NFTImage({ src, alt, className, fill, width, height }: N
     const [currentSrc, setCurrentSrc] = useState("");
 
     useEffect(() => {
-        if (src) {
+        if (src && src.trim() !== "") {
             setCurrentSrc(resolveIPFS(src, 0));
             setGatewayIndex(0);
             setError(false);
             setLoading(true);
+        } else {
+            setError(true);
+            setLoading(false);
+            setCurrentSrc("");
         }
     }, [src]);
 
@@ -48,7 +52,8 @@ export default function NFTImage({ src, alt, className, fill, width, height }: N
             if (nextIndex < IPFS_GATEWAYS.length) {
                 setGatewayIndex(nextIndex);
                 setCurrentSrc(resolveIPFS(src, nextIndex));
-                // Keep loading true as we try next gateway
+                // Resets loading to true to give visual feedback that we are trying again
+                setLoading(true);
             } else {
                 setLoading(false);
                 setError(true);
@@ -59,30 +64,41 @@ export default function NFTImage({ src, alt, className, fill, width, height }: N
         }
     };
 
-    if (!src || error) {
+    if (error || !currentSrc) {
         return (
-            <div className={`flex items-center justify-center bg-gray-800 text-gray-600 ${className}`}>
-                <span className="text-4xl">🎨</span>
+            <div
+                className={`flex flex-col items-center justify-center bg-gray-900 border border-gray-800/50 text-gray-700 ${className} ${fill ? 'w-full h-full' : ''}`}
+                style={!fill ? { width, height } : undefined}
+            >
+                <span className="text-3xl grayscale opacity-50">🖼️</span>
+                <span className="text-[10px] mt-2 font-mono">Image N/A</span>
             </div>
         );
     }
 
     return (
-        <div className={`relative overflow-hidden ${className}`}>
+        <div
+            className={`relative w-full h-full overflow-hidden bg-gray-900 ${className}`}
+            style={!fill ? { width, height } : undefined}
+        >
             {loading && (
-                <div className="absolute inset-0 bg-gray-800 animate-pulse z-10" />
+                <div className="absolute inset-0 z-10 w-full h-full bg-gray-900 flex items-center justify-center">
+                    <Skeleton className="w-full h-full rounded-none opacity-50" variant="rectangular" />
+                </div>
             )}
-            <Image
+
+            {/* Using standard img tag to bypass Next.js Image Optimization issues with dynamic IPFS */}
+            <img
                 src={currentSrc}
-                alt={alt}
-                fill={fill}
-                width={!fill ? width : undefined}
-                height={!fill ? height : undefined}
-                className={`object-cover transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}
+                alt={alt || "NFT Image"}
+                className={`
+                    w-full h-full object-cover transition-all duration-700 ease-out
+                    ${loading ? 'opacity-0 scale-105 blur-lg' : 'opacity-100 scale-100 blur-0'}
+                `}
+                style={{ position: fill ? 'absolute' : 'static' }}
                 onLoad={() => setLoading(false)}
                 onError={handleError}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                unoptimized={true} // Try unoptimized to bypass next/image server-side fetch issues with some gateways
+                loading="lazy"
             />
         </div>
     );

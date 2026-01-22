@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
+import { useEffect, useState, useRef } from "react";
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
 import { arcTestnet } from "@/lib/arcChain";
 import { useUsername, formatAddress } from "@/lib/useUsername";
 import Link from "next/link";
+import { Button } from "./ui/Button";
+import { useClickAway } from "react-use"; // Optional, but I can implement clean click-outside easily
 
 export default function WalletConnectButton() {
     const { address, isConnected } = useAccount();
@@ -13,13 +14,26 @@ export default function WalletConnectButton() {
     const { disconnect } = useDisconnect();
     const chainId = useChainId();
     const isWrongNetwork = isConnected && chainId !== arcTestnet.id;
-    const { switchChain, error: switchError } = useSwitchChain();
+    const { switchChain } = useSwitchChain();
     const { username } = useUsername(address);
 
     const [mounted, setMounted] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    // Simple click outside handler
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleSwitch = async () => {
@@ -30,51 +44,107 @@ export default function WalletConnectButton() {
         }
     };
 
-    if (!mounted) return null;
+    if (!mounted) {
+        return <Button isLoading variant="ghost" size="sm">Loading...</Button>;
+    }
 
     if (isConnected) {
-        return (
-            <div className="flex items-center gap-4">
-                {isWrongNetwork && (
-                    <button
-                        onClick={handleSwitch}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                    >
-                        <span>⚠️ Wrong Network</span>
-                        <span className="underline">Switch to Arc</span>
-                    </button>
-                )}
-                {switchError && (
-                    <span className="text-red-400 text-xs max-w-[100px] truncate" title={switchError.message}>
-                        {switchError.message}
-                    </span>
-                )}
-                <Link href="/profile" className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-gray-200 font-mono">
-                        {formatAddress(address!, username)}
-                    </span>
-                </Link>
-                <button
-                    onClick={() => disconnect()}
-                    className="text-gray-400 hover:text-white text-sm transition-colors"
+        if (isWrongNetwork) {
+            return (
+                <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleSwitch}
+                    leftIcon={<span>⚠️</span>}
+                    className="shake"
                 >
-                    Disconnect
+                    Switch Network
+                </Button>
+            );
+        }
+
+        return (
+            <div className="relative" ref={dropdownRef}>
+                <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className={`
+                        flex items-center gap-3 bg-surface hover:bg-surface-hover border border-border hover:border-border-hover 
+                        pl-3 pr-4 py-2 rounded-full transition-all group cursor-pointer
+                        ${dropdownOpen ? "ring-2 ring-primary/50 border-primary" : ""}
+                    `}
+                >
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-bold">
+                        {username ? username[0].toUpperCase() : "U"}
+                    </div>
+                    <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-sm font-medium text-white font-mono leading-none">
+                            {username || formatAddress(address!)}
+                        </span>
+                        <span className="text-[10px] text-gray-400 leading-none flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Connected
+                        </span>
+                    </div>
+                    <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                 </button>
+
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-scale-in origin-top-right">
+                        <div className="p-2">
+                            <div className="px-3 py-2 border-b border-border/50 mb-1">
+                                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Wallet</p>
+                                <p className="text-sm font-mono text-gray-300 truncate">{address}</p>
+                            </div>
+
+                            <Link
+                                href="/profile"
+                                onClick={() => setDropdownOpen(false)}
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                            >
+                                <span>👤</span> Profile
+                            </Link>
+
+                            <Link
+                                href="/dashboard"
+                                onClick={() => setDropdownOpen(false)}
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                            >
+                                <span>🖼️</span> My Collections
+                            </Link>
+
+                            <div className="h-px bg-border/50 my-1" />
+
+                            <button
+                                onClick={() => disconnect()}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                            >
+                                <span>🚪</span> Disconnect
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col items-end">
-            <button
+        <div>
+            <Button
                 onClick={() => connect({ connector: connectors[0] })}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all hover:scale-105 active:scale-95"
+                isLoading={isPending}
+                className="shadow-lg shadow-primary/20 rounded-full px-6"
+                variant="primary"
             >
-                {isPending ? "Connecting..." : "Connect Wallet"}
-            </button>
+                Connect Wallet
+            </Button>
             {connectError && (
-                <span className="text-red-400 text-xs mt-1 max-w-[200px] text-right">
+                <span className="absolute right-0 top-full mt-1 text-error text-xs max-w-[200px] text-right bg-black/80 p-1 rounded">
                     {connectError.message}
                 </span>
             )}

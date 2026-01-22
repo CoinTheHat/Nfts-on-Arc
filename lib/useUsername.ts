@@ -5,33 +5,32 @@ export const useUsername = (address: string | undefined) => {
     const [username, setUsername] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
+    const fetchUsername = async () => {
         if (!address) {
             setUsername(null);
             return;
         }
+        setLoading(true);
+        try {
+            const { data } = await supabase
+                .from("profiles")
+                .select("username")
+                .eq("wallet_address", address.toLowerCase())
+                .single();
 
-        const fetchUsername = async () => {
-            setLoading(true);
-            try {
-                const { data } = await supabase
-                    .from("profiles")
-                    .select("username")
-                    .eq("wallet_address", address.toLowerCase())
-                    .single();
+            setUsername(data?.username || null);
+        } catch (e) {
+            setUsername(null);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                setUsername(data?.username || null);
-            } catch (e) {
-                setUsername(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-
+    useEffect(() => {
         fetchUsername();
     }, [address]);
 
-    return { username, loading };
+    return { username, loading, refetch: fetchUsername };
 };
 
 export const formatAddress = (address: string, username?: string | null) => {

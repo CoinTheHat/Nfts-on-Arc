@@ -1,19 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContracts } from "wagmi";
 import Layout from "@/components/Layout";
-import Link from "next/link";
 import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { factoryAddress, factoryAddresses } from "@/lib/factoryAddress";
+import { factoryAddresses } from "@/lib/factoryAddress";
 import { supabase } from "@/lib/supabaseClient";
-import NFTImage from "@/components/NFTImage";
+import { formatEther, Abi } from "viem";
 
-import { Abi } from "viem";
+// New Modular Components
+import Hero from "@/components/home/Hero";
+import StatsStrip from "@/components/home/StatsStrip";
+import FeaturedSection from "@/components/home/FeaturedSection";
+import TrackingSection from "@/components/home/TrackingSection";
+import LatestGrid from "@/components/home/LatestGrid";
+import CreatorSupport from "@/components/home/CreatorSupport";
 
 export default function Home() {
   const [moderationData, setModerationData] = useState<Record<string, string>>({});
+  const [loadingMod, setLoadingMod] = useState(true);
 
   useEffect(() => {
     const fetchModeration = async () => {
@@ -23,12 +29,13 @@ export default function Home() {
         map[item.address.toLowerCase()] = item.status;
       });
       setModerationData(map);
+      setLoadingMod(false);
     };
     fetchModeration();
   }, []);
 
   // Fetch collections from ALL factories
-  const { data: allFactoriesData } = useReadContracts({
+  const { data: allFactoriesData, isLoading: isLoadingFactories } = useReadContracts({
     contracts: factoryAddresses.map((factoryAddr) => ({
       address: factoryAddr as `0x${string}`,
       abi: NFTFactoryArtifact.abi as unknown as Abi,
@@ -36,189 +43,139 @@ export default function Home() {
     })),
   });
 
-  // Combine all collections from all factories
   const allCollections = (allFactoriesData || [])
     .flatMap((result) => result.status === "success" ? result.result as string[] : [])
-    .reverse(); // Show newest first
+    .reverse();
 
-  // Filter out hidden collections for the main list
-  const visibleCollections = allCollections.filter(addr => {
-    const status = moderationData[addr.toLowerCase()];
-    return status !== 'hidden';
-  });
-
-  // Filter verified collections for Featured section
   const featuredCollections = allCollections.filter(addr => {
     const status = moderationData[addr.toLowerCase()];
     return status === 'verified';
-  }).slice(0, 3); // Top 3 verified
+  }).slice(0, 3) as `0x${string}`[];
 
-  // Prepare to fetch metadata for visible collections (pagination could be added here)
-  const collectionsToDisplay = visibleCollections.slice(0, 6) as `0x${string}`[];
+  const collectionsToDisplay = allCollections.slice(0, 12) as `0x${string}`[];
 
-  // Bulk fetch names
+  // Batch Contracts
   const { data: collectionNames } = useReadContracts({
-    contracts: collectionsToDisplay.map((addr) => ({
-      address: addr,
-      abi: NFTCollectionArtifact.abi as unknown as Abi,
-      functionName: "name",
-    })),
+    contracts: collectionsToDisplay.map((addr) => ({ address: addr, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "name" })),
   });
-
-  // Bulk fetch URIs
   const { data: collectionURIs } = useReadContracts({
-    contracts: collectionsToDisplay.map((addr) => ({
-      address: addr,
-      abi: NFTCollectionArtifact.abi as unknown as Abi,
-      functionName: "collectionURI",
-    })),
+    contracts: collectionsToDisplay.map((addr) => ({ address: addr, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "collectionURI" })),
+  });
+  const { data: collectionSupply } = useReadContracts({
+    contracts: collectionsToDisplay.map((addr) => ({ address: addr, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "maxSupply" })),
+  });
+  const { data: collectionMinted } = useReadContracts({
+    contracts: collectionsToDisplay.map((addr) => ({ address: addr, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "totalMinted" })),
   });
 
-  // Bulk fetch names for Featured
+  // Featured Batch
   const { data: featuredNames } = useReadContracts({
-    contracts: featuredCollections.map((addr) => ({
+    contracts: featuredCollections.map((addr) => ({ address: addr as `0x${string}`, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "name" })),
+  });
+  const { data: featuredURIs } = useReadContracts({
+    contracts: featuredCollections.map((addr) => ({ address: addr as `0x${string}`, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "collectionURI" })),
+  });
+  const { data: featuredSupply } = useReadContracts({
+    contracts: featuredCollections.map((addr) => ({ address: addr as `0x${string}`, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "maxSupply" })),
+  });
+  const { data: featuredMinted } = useReadContracts({
+    contracts: featuredCollections.map((addr) => ({ address: addr as `0x${string}`, abi: NFTCollectionArtifact.abi as unknown as Abi, functionName: "totalMinted" })),
+  });
+
+  // Fetch Prices for Volume Calc (All Collections)
+  const { data: allPrices } = useReadContracts({
+    contracts: allCollections.map((addr) => ({
       address: addr as `0x${string}`,
       abi: NFTCollectionArtifact.abi as unknown as Abi,
-      functionName: "name",
+      functionName: "mintPrice"
     })),
   });
 
-  // Bulk fetch URIs for Featured
-  const { data: featuredURIs } = useReadContracts({
-    contracts: featuredCollections.map((addr) => ({
+  const { data: allMinted } = useReadContracts({
+    contracts: allCollections.map((addr) => ({
       address: addr as `0x${string}`,
       abi: NFTCollectionArtifact.abi as unknown as Abi,
-      functionName: "collectionURI",
+      functionName: "totalMinted"
     })),
   });
+
+  const isLoading = isLoadingFactories || loadingMod;
+
+  // Calculate aggregated stats
+  const totalMintedSum = (allMinted || []).reduce((acc: number, curr) => {
+    if (curr.status === "success" && curr.result) {
+      return acc + Number(curr.result);
+    }
+    return acc;
+  }, 0);
+
+  const totalVolumeSum = allCollections.reduce((acc, _, index) => {
+    const minted = allMinted?.[index]?.result ? Number(allMinted[index].result) : 0;
+    const priceStr = allPrices?.[index]?.result ? formatEther(allPrices[index].result as bigint) : "0";
+    return acc + (minted * Number(priceStr));
+  }, 0);
+
+  // Mocking ARC/USD parity or just displaying value with $ symbol for now as requested
+  // "Currency: Display as $"
+  const formattedVolume = `$${totalVolumeSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="max-w-3xl space-y-8">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent pb-2">
-            Launch NFTs on Arc in 1 Minute
-          </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Deploy a free NFT collection and share a mint link. No backend. No payments. Just Arc.
-          </p>
-
-          <div className="pt-8">
-            <Link
-              href="/create"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105 shadow-lg shadow-blue-500/20"
-            >
-              Create Collection
-            </Link>
-          </div>
+      {/* 1. Hero & Stats (Bg Base) */}
+      <div className="bg-bg-base border-b border-border-subtle">
+        <Hero />
+        <div className="-mt-8 md:-mt-12 mb-12 relative z-20">
+          <StatsStrip
+            totalVolume={formattedVolume}
+            activeMints={allCollections.length}
+            newCollections24h={0} // No indexer for time yet
+            totalMinted24h={totalMintedSum}
+            isLoading={isLoading}
+          />
         </div>
       </div>
 
-      {/* Featured Collections Section */}
+      {/* 2. Featured Section (Bg Base) */}
       {featuredCollections.length > 0 && (
-        <div className="max-w-6xl mx-auto mt-20">
-          <h2 className="text-3xl font-bold mb-8 text-center md:text-left flex items-center gap-2">
-            <span>🔥</span> Featured Mints
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredCollections.map((addr, index) => {
-              const nameData = featuredNames?.[index];
-              const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
-
-              const uriData = featuredURIs?.[index];
-              const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
-
-              return (
-                <Link
-                  key={addr}
-                  href={`/mint/${addr}`}
-                  className="bg-gray-900/50 border border-yellow-500/30 hover:border-yellow-500 rounded-2xl p-6 transition-all hover:-translate-y-1 group relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
-                    VERIFIED
-                  </div>
-                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform relative">
-                    <NFTImage
-                      src={imageUrl}
-                      alt={name}
-                      fill
-                      className="w-full h-full"
-                    />
-                  </div>
-                  <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
-                  <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>
-                  <div className="mt-4 text-yellow-400 text-sm font-medium group-hover:text-yellow-300">
-                    Mint Now →
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <section className="bg-bg-base border-b border-border-subtle">
+          <FeaturedSection
+            collections={featuredCollections}
+            names={featuredNames || []}
+            uris={featuredURIs || []}
+            mintedData={featuredMinted || []}
+            supplyData={featuredSupply || []}
+          />
+        </section>
       )}
 
-      {/* All Collections Section */}
-      <div className="max-w-6xl mx-auto mt-20">
-        <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Latest Collections</h2>
+      {/* 3. Tracking Section (Bg Alt) - Rhythm Break */}
+      <section className="bg-bg-alt border-b border-border-subtle">
+        <TrackingSection
+          collections={collectionsToDisplay}
+          names={collectionNames || []}
+          uris={collectionURIs || []}
+          mintedData={collectionMinted || []}
+          supplyData={collectionSupply || []}
+        />
+      </section>
 
-        {collectionsToDisplay.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
-            No collections found.
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-6">
-            {collectionsToDisplay.map((addr, index) => {
-              const nameData = collectionNames?.[index];
-              const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
+      {/* 4. Latest Collections (Bg Base) */}
+      <section className="bg-bg-base">
+        <LatestGrid
+          collections={collectionsToDisplay}
+          names={collectionNames || []}
+          uris={collectionURIs || []}
+          mintedData={collectionMinted || []}
+          supplyData={collectionSupply || []}
+          moderationData={moderationData}
+          isLoading={isLoading}
+        />
+      </section>
 
-              const uriData = collectionURIs?.[index];
-              const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
-
-              return (
-                <Link
-                  key={addr}
-                  href={`/mint/${addr}`}
-                  className="bg-gray-900/50 border border-gray-800 hover:border-blue-500/50 rounded-2xl p-6 transition-all hover:-translate-y-1 group"
-                >
-                  <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-4 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform relative">
-                    <NFTImage
-                      src={imageUrl}
-                      alt={name}
-                      fill
-                      className="w-full h-full"
-                    />
-                  </div>
-                  <h3 className="text-xl font-bold mb-1 truncate">{name}</h3>
-                  <p className="text-sm text-gray-500 font-mono truncate">{addr}</p>
-                  <div className="mt-4 text-blue-400 text-sm font-medium group-hover:text-blue-300">
-                    Mint Now →
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-8 mt-20 text-left max-w-6xl mx-auto border-t border-gray-800 pt-16">
-        <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 text-2xl font-bold mb-4">1</div>
-          <h3 className="text-xl font-bold mb-2">Connect Wallet</h3>
-          <p className="text-gray-400">Connect your wallet to the Arc Testnet to get started.</p>
-        </div>
-        <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 text-2xl font-bold mb-4">2</div>
-          <h3 className="text-xl font-bold mb-2">Deploy Collection</h3>
-          <p className="text-gray-400">Set your collection name, symbol, and supply. Deploy instantly.</p>
-        </div>
-        <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center text-pink-400 text-2xl font-bold mb-4">3</div>
-          <h3 className="text-xl font-bold mb-2">Share Mint Link</h3>
-          <p className="text-gray-400">Get a public mint page URL to share with your community.</p>
-        </div>
-      </div>
+      {/* 5. Creator Support (Bg Alt) */}
+      <section className="bg-bg-alt border-t border-border-subtle">
+        <CreatorSupport />
+      </section>
     </Layout>
   );
 }
-

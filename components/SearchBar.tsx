@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { Input } from "./ui/Input";
 
 export default function SearchBar() {
     const [query, setQuery] = useState("");
@@ -11,7 +12,7 @@ export default function SearchBar() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const router = useRouter();
 
-    // Debounce search
+    // Debounce search logic remains same
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (query.trim().length < 2) {
@@ -55,7 +56,7 @@ export default function SearchBar() {
             return;
         }
 
-        // Search by username (exact match for main search)
+        // Search by username
         try {
             const { data } = await supabase
                 .from("profiles")
@@ -77,32 +78,31 @@ export default function SearchBar() {
     };
 
     return (
-        <div className="relative">
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => {
-                        setQuery(e.target.value);
-                        setShowSuggestions(true);
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay to allow click
-                    placeholder="Search user..."
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-48"
-                />
-                <button
-                    type="submit"
-                    disabled={searching}
-                    className="bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                    {searching ? "..." : "🔍"}
-                </button>
+        <div className="relative w-full group">
+            <form onSubmit={handleSearch}>
+                <div className="relative">
+                    <Input
+                        type="text"
+                        value={query}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        placeholder="Search collections, creators..."
+                        className="bg-surface/50 border-white/10 text-sm h-10 py-2 pl-10 rounded-full focus:bg-surface focus:border-primary/50 transition-all placeholder:text-gray-500"
+                        containerClassName="m-0"
+                    />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                </div>
             </form>
 
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 w-full mt-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
                     {suggestions.map((user) => (
                         <div
                             key={user.wallet_address}
@@ -111,16 +111,16 @@ export default function SearchBar() {
                                 setQuery("");
                                 setShowSuggestions(false);
                             }}
-                            className="px-3 py-2 hover:bg-gray-700 cursor-pointer flex items-center gap-2 transition-colors"
+                            className="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition-colors border-b border-gray-800/50 last:border-none"
                         >
-                            <div className="w-6 h-6 rounded-full bg-gray-600 overflow-hidden flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
                                 {user.avatar_url ? (
                                     <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs">👤</div>
+                                    <div className="w-full h-full flex items-center justify-center text-sm">👤</div>
                                 )}
                             </div>
-                            <span className="text-sm text-gray-200 truncate">{user.username}</span>
+                            <span className="text-sm font-medium text-gray-200 truncate">{user.username}</span>
                         </div>
                     ))}
                 </div>

@@ -14,9 +14,12 @@
     "@tanstack/react-query": "^5.90.11",
     "dotenv": "^17.2.3",
     "erc721a": "^4.3.0",
+    "framer-motion": "^12.29.0",
     "next": "^16.0.8",
     "react": "^19.2.1",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.2.1",
+    "react-use": "^17.6.0",
     "viem": "^2.40.3",
     "wagmi": "^3.0.1"
   },

@@ -1,59 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
     try {
-        console.log("Upload request started");
-        console.log("Supabase URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-        console.log("Supabase Key exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
         const formData = await req.formData();
-        const file = formData.get("file") as File;
+        const file = formData.get('file') as File;
 
         if (!file) {
-            console.error("No file found in formData");
-            return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
-        const buffer = await file.arrayBuffer();
+        // Initialize Supabase Client (Server-side)
+        // We use the service role key if available for bypassing RLS, or just standard key if RLS allows anon uploads
+        // For this demo, we assume the public anon key has access or user is authenticated
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Sanitize filename: replace Turkish chars and special chars
-        let safeName = file.name
-            .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
-            .replace(/ü/g, 'u').replace(/Ü/g, 'U')
-            .replace(/ş/g, 's').replace(/Ş/g, 'S')
-            .replace(/ı/g, 'i').replace(/İ/g, 'I')
-            .replace(/ö/g, 'o').replace(/Ö/g, 'O')
-            .replace(/ç/g, 'c').replace(/Ç/g, 'C')
-            .replace(/[^a-zA-Z0-9._-]/g, '_'); // Replace any other special char with underscore
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-        const filename = `${Date.now()}_${safeName}`;
+        // Upload to 'uploads' bucket (User needs to create this bucket in Supabase)
+        const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('uploads')
+            .upload(filePath, file);
 
-        console.log("Uploading file:", filename);
-
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
-            .from("uploads")
-            .upload(filename, buffer, {
-                contentType: file.type,
-                upsert: false
-            });
-
-        if (error) {
-            console.error("Supabase upload error details:", JSON.stringify(error, null, 2));
-            throw error;
+        if (uploadError) {
+            console.error('Supabase storage upload error:', uploadError);
+            return NextResponse.json({ error: uploadError.message }, { status: 500 });
         }
-
-        console.log("Upload successful:", data);
 
         // Get Public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from("uploads")
-            .getPublicUrl(filename);
+        const { data: publicUrlData } = supabase
+            .storage
+            .from('uploads')
+            .getPublicUrl(filePath);
 
-        return NextResponse.json({ url: publicUrl });
-    } catch (e: any) {
-        console.error("Catch block error:", e);
-        return NextResponse.json({ error: e.message || "Unknown server error", details: JSON.stringify(e) }, { status: 500 });
+        return NextResponse.json({ url: publicUrlData.publicUrl });
+    } catch (error) {
+        console.error('Upload handler error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -1,299 +1,209 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import Layout from "@/components/Layout";
-import { supabase } from "@/lib/supabaseClient";
-import { isUserAdmin } from "@/lib/adminConfig";
-import { useReadContracts } from "wagmi";
-import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import NFTCollectionArtifact from "@/lib/NFTCollection.json";
-import { factoryAddresses } from "@/lib/factoryAddress";
-import { Abi, formatEther } from "viem";
-import Link from "next/link";
-
-type CollectionStatus = 'verified' | 'hidden' | 'neutral';
-
-interface ModerationData {
-    address: string;
-    status: CollectionStatus;
-}
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
+import { useSearchParams } from "next/navigation";
+import { formatEther, Abi } from "viem";
 
 export default function AdminPage() {
     const { address, isConnected } = useAccount();
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [moderationData, setModerationData] = useState<Record<string, CollectionStatus>>({});
-    const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
+    const initialAddress = searchParams.get("collection") || "";
 
-    // Check admin status
+    const [collectionAddress, setCollectionAddress] = useState(initialAddress);
+    const [targetAddress, setTargetAddress] = useState<`0x${string}` | null>(initialAddress ? initialAddress as `0x${string}` : null);
+    const { toast } = useToast();
+
+    // Fetch Data
+    const contractConfig = {
+        address: targetAddress || undefined,
+        abi: NFTCollectionArtifact.abi as unknown as Abi,
+        query: { enabled: !!targetAddress }
+    };
+
+    const { data: owner } = useReadContract({ ...contractConfig, functionName: "owner" });
+    const { data: name } = useReadContract({ ...contractConfig, functionName: "name" });
+    const { data: symbol } = useReadContract({ ...contractConfig, functionName: "symbol" });
+    const { data: totalSupply } = useReadContract({ ...contractConfig, functionName: "totalMinted" });
+    const { data: maxSupply } = useReadContract({ ...contractConfig, functionName: "maxSupply" });
+    const { data: balance } = useReadContract({ ...contractConfig, functionName: "balanceOf", args: [targetAddress] }); // Helper to get contract balance? No, ERC721 balanceOf is user balance. 
+    // We can't easily get ETH balance of contract via wagmi readContract without a custom hook or provider call usually.
+    // For now we assume we can just withdraw blind.
+
+    const isOwner = owner && (owner as string).toLowerCase() === address?.toLowerCase();
+
+    // Withdraw Action
+    const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+        hash,
+    });
+
     useEffect(() => {
-        setIsAdmin(isUserAdmin(address));
-    }, [address]);
+        if (isConfirmed) toast("Withdraw Successful", "success");
+        if (error) toast(error.message, "error");
+    }, [isConfirmed, error]);
 
-    // Fetch moderation data from Supabase
-    const fetchModerationData = async () => {
-        const { data, error } = await supabase
-            .from('collection_moderation')
-            .select('address, status');
-
-        if (error) {
-            console.error('Error fetching moderation data:', error);
-            return;
-        }
-
-        const map: Record<string, CollectionStatus> = {};
-        data?.forEach((item: ModerationData) => {
-            map[item.address.toLowerCase()] = item.status;
+    const handleWithdraw = () => {
+        if (!targetAddress) return;
+        writeContract({
+            address: targetAddress,
+            abi: NFTCollectionArtifact.abi as unknown as Abi,
+            functionName: "withdraw",
         });
-        setModerationData(map);
     };
 
-    useEffect(() => {
-        fetchModerationData();
-    }, []);
-
-    // Fetch all collections from blockchain (reusing logic from Home)
-    const { data: allFactoriesData } = useReadContracts({
-        contracts: factoryAddresses.map((factoryAddr) => ({
-            address: factoryAddr as `0x${string}`,
-            abi: NFTFactoryArtifact.abi as unknown as Abi,
-            functionName: "getAllCollections",
-        })),
-    });
-
-    const allCollections = (allFactoriesData || [])
-        .flatMap((result) => result.status === "success" ? result.result as string[] : [])
-        .reverse(); // Newest first
-
-    // Fetch names
-    const { data: collectionNames } = useReadContracts({
-        contracts: allCollections.map((addr) => ({
-            address: addr as `0x${string}`,
-            abi: NFTCollectionArtifact.abi as unknown as Abi,
-            functionName: "name",
-        })),
-    });
-
-    // Fetch URIs
-    const { data: collectionURIs } = useReadContracts({
-        contracts: allCollections.map((addr) => ({
-            address: addr as `0x${string}`,
-            abi: NFTCollectionArtifact.abi as unknown as Abi,
-            functionName: "collectionURI",
-        })),
-    });
-
-    // Fetch additional data for stats
-    const { data: collectionStats } = useReadContracts({
-        contracts: allCollections.flatMap((addr) => [
-            {
-                address: addr as `0x${string}`,
-                abi: NFTCollectionArtifact.abi as unknown as Abi,
-                functionName: "totalMinted",
-            },
-            {
-                address: addr as `0x${string}`,
-                abi: NFTCollectionArtifact.abi as unknown as Abi,
-                functionName: "owner",
-            },
-            {
-                address: addr as `0x${string}`,
-                abi: NFTCollectionArtifact.abi as unknown as Abi,
-                functionName: "mintPrice",
-            }
-        ]),
-    });
-
-    // Calculate Statistics
-    const totalCollections = allCollections.length;
-    let totalMinted = 0;
-    let totalVolume = BigInt(0);
-    const uniqueCreators = new Set<string>();
-
-    if (collectionStats) {
-        for (let i = 0; i < allCollections.length; i++) {
-            const mintedResult = collectionStats[i * 3];
-            const ownerResult = collectionStats[i * 3 + 1];
-            const priceResult = collectionStats[i * 3 + 2];
-
-            if (mintedResult.status === "success") {
-                totalMinted += Number(mintedResult.result);
-            }
-
-            if (ownerResult.status === "success") {
-                uniqueCreators.add(String(ownerResult.result).toLowerCase());
-            }
-
-            if (mintedResult.status === "success" && priceResult.status === "success") {
-                const minted = BigInt(mintedResult.result as unknown as number);
-                const price = BigInt(priceResult.result as unknown as number);
-                totalVolume += minted * price;
-            }
-        }
-    }
-
-    const updateStatus = async (collectionAddress: string, status: CollectionStatus) => {
-        const { error } = await supabase
-            .from('collection_moderation')
-            .upsert({
-                address: collectionAddress.toLowerCase(),
-                status: status,
-                updated_at: new Date().toISOString()
-            });
-
-        if (error) {
-            alert(`Error updating status: ${error.message}`);
+    const handleLoad = () => {
+        if (collectionAddress.startsWith("0x")) {
+            setTargetAddress(collectionAddress as `0x${string}`);
         } else {
-            setModerationData(prev => ({
-                ...prev,
-                [collectionAddress.toLowerCase()]: status
-            }));
+            toast("Invalid Address format", "error");
         }
     };
-
-    if (!isConnected) {
-        return (
-            <Layout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                    <h1 className="text-2xl font-bold text-gray-400">Please connect your wallet</h1>
-                </div>
-            </Layout>
-        );
-    }
-
-    if (!isAdmin) {
-        return (
-            <Layout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-                    <h1 className="text-4xl font-bold text-red-500 mb-4">Access Denied</h1>
-                    <p className="text-gray-400 mb-4">You are not authorized to view this page.</p>
-                    <p className="text-sm text-gray-600 font-mono bg-gray-900 p-2 rounded">
-                        Your address: {address}
-                    </p>
-                </div>
-            </Layout>
-        );
-    }
 
     return (
         <Layout>
-            <div className="max-w-6xl mx-auto py-12 px-4">
-                <h1 className="text-4xl font-bold mb-8">Admin Panel 🛡️</h1>
-
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
-                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Collections</h3>
-                        <p className="text-3xl font-bold text-white">{totalCollections}</p>
+            <div className="max-w-4xl mx-auto py-12 px-4">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold">Admin Console</h1>
+                        <p className="text-gray-400">Manage your smart contract settings and funds.</p>
                     </div>
-                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
-                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Minted</h3>
-                        <p className="text-3xl font-bold text-blue-400">{totalMinted}</p>
-                    </div>
-                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
-                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Unique Creators</h3>
-                        <p className="text-3xl font-bold text-purple-400">{uniqueCreators.size}</p>
-                    </div>
-                    <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-2xl">
-                        <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Total Volume</h3>
-                        <p className="text-3xl font-bold text-green-400">{formatEther(totalVolume)} <span className="text-lg text-gray-500">ETH</span></p>
-                    </div>
+                    {targetAddress && (
+                        <Badge variant={isOwner ? "success" : "danger"}>
+                            {isOwner ? "Authorized Owner" : "Read Only View"}
+                        </Badge>
+                    )}
                 </div>
 
-                <div className="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-800/50 text-gray-400 text-sm uppercase">
-                                <tr>
-                                    <th className="p-4">Collection</th>
-                                    <th className="p-4">Address</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-800">
-                                {allCollections.map((addr, index) => {
-                                    const nameData = collectionNames?.[index];
-                                    const name = nameData?.status === "success" ? String(nameData.result) : "Loading...";
-
-                                    const uriData = collectionURIs?.[index];
-                                    const imageUrl = uriData?.status === "success" ? String(uriData.result) : null;
-
-                                    const currentStatus = moderationData[addr.toLowerCase()] || 'neutral';
-
-                                    return (
-                                        <tr key={addr} className="hover:bg-gray-800/30 transition-colors">
-                                            <td className="p-4 font-medium text-white">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
-                                                        {imageUrl ? (
-                                                            <img
-                                                                src={imageUrl}
-                                                                alt={name}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.style.display = 'none';
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-lg">🎨</div>
-                                                        )}
-                                                    </div>
-                                                    <Link href={`/mint/${addr}`} className="hover:underline hover:text-blue-400">
-                                                        {name}
-                                                    </Link>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 font-mono text-sm text-gray-500">
-                                                {addr}
-                                            </td>
-                                            <td className="p-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
-                                                    ${currentStatus === 'verified' ? 'bg-green-500/20 text-green-400' :
-                                                        currentStatus === 'hidden' ? 'bg-red-500/20 text-red-400' :
-                                                            'bg-gray-700/50 text-gray-400'}`}>
-                                                    {currentStatus}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-right space-x-2">
-                                                <button
-                                                    onClick={() => updateStatus(addr, 'verified')}
-                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors
-                                                        ${currentStatus === 'verified'
-                                                            ? 'bg-green-600 text-white cursor-default'
-                                                            : 'bg-gray-800 text-green-400 hover:bg-green-500/20'}`}
-                                                    disabled={currentStatus === 'verified'}
-                                                >
-                                                    Verify
-                                                </button>
-                                                <button
-                                                    onClick={() => updateStatus(addr, 'neutral')}
-                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors
-                                                        ${currentStatus === 'neutral'
-                                                            ? 'bg-gray-600 text-white cursor-default'
-                                                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-                                                    disabled={currentStatus === 'neutral'}
-                                                >
-                                                    Reset
-                                                </button>
-                                                <button
-                                                    onClick={() => updateStatus(addr, 'hidden')}
-                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors
-                                                        ${currentStatus === 'hidden'
-                                                            ? 'bg-red-600 text-white cursor-default'
-                                                            : 'bg-gray-800 text-red-400 hover:bg-red-500/20'}`}
-                                                    disabled={currentStatus === 'hidden'}
-                                                >
-                                                    Hide
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                {/* Search Bar */}
+                <Card className="p-6 bg-surface border-border mb-8">
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <Input
+                            label="Collection Address"
+                            placeholder="0x..."
+                            value={collectionAddress}
+                            onChange={(e) => setCollectionAddress(e.target.value)}
+                            containerClassName="flex-1 m-0"
+                        />
+                        <Button onClick={handleLoad} variant="secondary" className="mb-[2px]">Load Dashboard</Button>
                     </div>
-                </div>
+                </Card>
+
+                {targetAddress && (
+                    <div className="animate-fade-in space-y-8">
+                        {/* Overview Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Card className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Project</h3>
+                                <p className="text-2xl font-bold text-white truncate">{name as string || "..."}</p>
+                                <p className="text-sm font-mono text-primary">{symbol as string}</p>
+                            </Card>
+                            <Card className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Mint Status</h3>
+                                <p className="text-2xl font-bold text-white">
+                                    {totalSupply ? Number(totalSupply).toLocaleString() : "0"} / {maxSupply ? Number(maxSupply).toLocaleString() : "0"}
+                                </p>
+                                <div className="w-full bg-gray-700 h-1.5 mt-3 rounded-full overflow-hidden">
+                                    <div className="bg-green-500 h-full" style={{ width: `${(Number(totalSupply || 0) / Number(maxSupply || 1)) * 100}%` }} />
+                                </div>
+                            </Card>
+                            <Card className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Balance</h3>
+                                <p className="text-2xl font-bold text-white">-- ETH</p>
+                                <p className="text-xs text-gray-500">Contract Balance</p>
+                            </Card>
+                        </div>
+
+                        {!isOwner ? (
+                            <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-4 text-red-400">
+                                <div className="text-2xl">🔒</div>
+                                <div>
+                                    <h3 className="font-bold text-lg">Restricted Access</h3>
+                                    <p className="opacity-80">You are not the owner of this contract. You can view stats but cannot perform administrative actions.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {/* Funds Management */}
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-bold border-b border-gray-800 pb-2">Funds & Sales</h2>
+
+                                    <Card className="p-6 bg-surface border-border">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-bold text-white">Withdraw Revenue</h3>
+                                                <p className="text-sm text-gray-400 mt-1">Transfer all accumulated ETH/ARC to your wallet.</p>
+                                            </div>
+                                            <div className="p-3 bg-green-500/10 rounded-lg text-green-500">
+                                                💸
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={handleWithdraw}
+                                            isLoading={isPending || isConfirming}
+                                            variant="primary"
+                                            fullWidth
+                                        >
+                                            Withdraw Funds
+                                        </Button>
+                                    </Card>
+
+                                    <Card className="p-6 bg-surface border-border opacity-75">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-bold text-white">Airdrop (Soon)</h3>
+                                                <p className="text-sm text-gray-400 mt-1">Send NFTs to specific addresses for free.</p>
+                                            </div>
+                                            <div className="p-3 bg-blue-500/10 rounded-lg text-blue-500">
+                                                🎁
+                                            </div>
+                                        </div>
+                                        <Button variant="secondary" fullWidth disabled>Coming Soon</Button>
+                                    </Card>
+                                </div>
+
+                                {/* Settings */}
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-bold border-b border-gray-800 pb-2">Contract Settings</h2>
+
+                                    <Card className="p-6 bg-surface border-border opacity-75">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-bold text-white">Metadata URL</h3>
+                                                <p className="text-sm text-gray-400 mt-1">Update the base URI for your metadata.</p>
+                                            </div>
+                                            <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500">
+                                                🔗
+                                            </div>
+                                        </div>
+                                        <Button variant="secondary" fullWidth disabled>Update URI (Coming Soon)</Button>
+                                    </Card>
+
+                                    <Card className="p-6 bg-surface border-border opacity-75">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-bold text-white">Mint Phase</h3>
+                                                <p className="text-sm text-gray-400 mt-1">Pause or resume minting publicly.</p>
+                                            </div>
+                                            <div className="p-3 bg-yellow-500/10 rounded-lg text-yellow-500">
+                                                ⏸️
+                                            </div>
+                                        </div>
+                                        <Button variant="secondary" fullWidth disabled>Pause Minting (Coming Soon)</Button>
+                                    </Card>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </Layout>
     );

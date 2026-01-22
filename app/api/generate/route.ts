@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         const encodedPrompt = encodeURIComponent(prompt + " high quality, digital art, highly detailed, 8k, cyberpunk style, vivid colors");
         // Random seed to ensure uniqueness even for same prompt
         const randomSeed = Math.floor(Math.random() * 1000000);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`;
+        const imageUrl = `https://pollinations.ai/p/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`;
 
         // Simulate a slight delay to feel like "AI Processing"
         // Pollinations is fast but give it a sec to seem "impressed"

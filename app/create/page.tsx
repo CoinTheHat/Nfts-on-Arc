@@ -78,7 +78,7 @@ export default function Create() {
             let finalURI = "";
             let imageSource = previewUrl;
 
-            if (!imageSource || (!imageSource.startsWith('http') && !imageSource.startsWith('blob'))) {
+            if (!imageSource || (!imageSource.startsWith('http') && !imageSource.startsWith('blob') && !imageSource.startsWith('data:'))) {
                 imageSource = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
             }
 

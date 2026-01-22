@@ -77,7 +77,7 @@ export default function AdminPage() {
                         <p className="text-gray-400">Manage your smart contract settings and funds.</p>
                     </div>
                     {targetAddress && (
-                        <Badge variant={isOwner ? "success" : "danger"}>
+                        <Badge variant={isOwner ? "success" : "error"}>
                             {isOwner ? "Authorized Owner" : "Read Only View"}
                         </Badge>
                     )}

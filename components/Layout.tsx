@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "wagmi";
 import { formatEther } from "viem";
+import CopilotWidget from "./ai/CopilotWidget";
 
 function BalanceDisplay({ address }: { address?: `0x${string}` }) {
     const { data } = useBalance({ address });
@@ -301,6 +302,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                     © 2026 Arc Network. All rights reserved.
                 </div>
             </footer>
+
+            <CopilotWidget />
         </div >
     );
 }

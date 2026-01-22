@@ -199,9 +199,11 @@ export default function Create() {
                             if (log.topics && log.topics.length >= 2) {
                                 // Topics[1] is the indexed 'collection' address (padded to 32 bytes)
                                 const addressHex = log.topics[1];
-                                deployedAddress = `0x${addressHex.slice(-40)}`; // Extract last 40 hex chars (20 bytes)
-                                console.log("Deployed Address from event:", deployedAddress);
-                                break;
+                                if (addressHex) {
+                                    deployedAddress = `0x${addressHex.slice(-40)}`; // Extract last 40 hex chars (20 bytes)
+                                    console.log("Deployed Address from event:", deployedAddress);
+                                    break;
+                                }
                             }
                         }
                     }

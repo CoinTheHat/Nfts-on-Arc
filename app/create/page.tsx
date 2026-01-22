@@ -77,7 +77,7 @@ export default function Create() {
             let imageSource = previewUrl;
 
             if (!imageSource || (!imageSource.startsWith('http') && !imageSource.startsWith('blob'))) {
-                imageSource = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
+                imageSource = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
             }
 
             console.log("[UPLOAD] Image source:", imageSource);
@@ -113,11 +113,11 @@ export default function Create() {
                 console.error("[UPLOAD] Error:", uploadErr.message);
 
                 if (imageSource.startsWith('blob:')) {
-                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                    finalURI = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
                 } else if (imageSource.includes('dicebear')) {
                     finalURI = imageSource;
                 } else {
-                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                    finalURI = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
                 }
                 console.log("[UPLOAD] Using fallback:", finalURI);
             }

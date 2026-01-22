@@ -90,7 +90,7 @@ export default function CollectionPage() {
                             <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-md">
                                 {isLoading ? <Skeleton width={200} /> : (name?.result as string)}
                             </h1>
-                            {name?.result && <Badge variant="warning" className="shadow-lg">VERIFIED</Badge>}
+                            {Boolean(name?.result) && <Badge variant="warning" className="shadow-lg">VERIFIED</Badge>}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-300">
                             <span className="font-mono text-primary font-bold">BY {(owner?.result as string || "").slice(0, 6)}...</span>

@@ -85,9 +85,26 @@ export default function Create() {
             console.log("[UPLOAD] Image source:", imageSource);
 
             try {
-                const response = await fetch(imageSource);
-                const blob = await response.blob();
-                console.log("[UPLOAD] Fetched blob, size:", blob.size);
+                let blob: Blob;
+
+                // Handle Base64 Data URLs (from AI generation)
+                if (imageSource.startsWith('data:')) {
+                    console.log("[UPLOAD] Converting Base64 Data URL to Blob...");
+                    const base64Data = imageSource.split(',')[1];
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    blob = new Blob([byteArray], { type: 'image/png' });
+                    console.log("[UPLOAD] Base64 converted to blob, size:", blob.size);
+                } else {
+                    // Handle HTTP/HTTPS URLs and Blob URLs
+                    const response = await fetch(imageSource);
+                    blob = await response.blob();
+                    console.log("[UPLOAD] Fetched blob from URL, size:", blob.size);
+                }
 
                 const fileToUpload = new File([blob], "collection-image.png", { type: "image/png" });
                 const uploadFormData = new FormData();

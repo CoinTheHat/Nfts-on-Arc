@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+    // Version: 2.1 - Multi-strategy AI generation with robust fallbacks
+    console.log("[AI-GEN v2.1] Image generation request received");
+
     try {
         const { prompt } = await req.json();
 

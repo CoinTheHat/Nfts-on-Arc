@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-    // Version: 2.1 - Multi-strategy AI generation with robust fallbacks
-    console.log("[AI-GEN v2.1] Image generation request received");
+    // Version: 3.0 - DiceBear Primary with Diverse Styles (No Rate Limits!)
+    console.log("[AI-GEN v3.0] Image generation request received");
 
     try {
         const { prompt } = await req.json();
@@ -11,30 +11,51 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
         }
 
-        // URL-encode the prompt to use as a seed
-        // Strategy 1: Pollinations.ai (New & Old Endpoints)
-        // We try multiple constructed URLs to find one that works.
-        const encodedPrompt = encodeURIComponent(prompt + " high quality, digital art, highly detailed, 8k, cyberpunk style, vivid colors");
+        const encodedPrompt = encodeURIComponent(prompt);
         const randomSeed = Math.floor(Math.random() * 1000000);
 
-        const candidates = [
-            `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`,
-            `https://pollinations.ai/p/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`
+        // STRATEGY 1: DiceBear (Primary) - Fast, reliable, no rate limits
+        // Multiple styles for variety
+        const dicebearStyles = [
+            'lorelei',        // Artistic, colorful characters
+            'notionists',     // Modern, geometric avatars
+            'shapes',         // Abstract, vibrant patterns
+            'rings',          // Unique ring patterns
+            'identicon',      // Geometric, crypto-style
+            'bottts-neutral'  // Robot avatars
         ];
+
+        const randomStyle = dicebearStyles[Math.floor(Math.random() * dicebearStyles.length)];
+        const dicebearUrl = `https://api.dicebear.com/9.x/${randomStyle}/png?seed=${encodedPrompt}-${randomSeed}`;
+
+        console.log("Using DiceBear style:", randomStyle);
 
         let buffer: ArrayBuffer | null = null;
 
-        for (const url of candidates) {
+        // Try DiceBear first (always fast and reliable)
+        try {
+            const res = await fetch(dicebearUrl);
+            if (res.ok) {
+                buffer = await res.arrayBuffer();
+                console.log("✓ DiceBear generated successfully");
+            }
+        } catch (e) {
+            console.error("DiceBear failed (rare):", e);
+        }
+
+        // STRATEGY 2: Pollinations.ai (Optional, if DiceBear somehow fails)
+        // Very short timeout since it's just a backup
+        if (!buffer) {
+            console.log("DiceBear failed, trying Pollinations.ai as backup...");
+            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + " digital art")}?seed=${randomSeed}&width=512&height=512&nologo=true`;
+
             try {
-                console.log("Trying AI URL:", url);
-
-                // Create AbortController for timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout for faster UX
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-                const res = await fetch(url, {
+                const res = await fetch(pollinationsUrl, {
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     },
                     signal: controller.signal
                 });
@@ -43,23 +64,22 @@ export async function POST(req: Request) {
 
                 if (res.ok) {
                     buffer = await res.arrayBuffer();
-                    break;
+                    console.log("✓ Pollinations backup worked");
                 }
             } catch (e) {
-                console.error("Failed candidate:", url, e);
+                console.error("Pollinations backup failed:", e);
             }
         }
 
-        // Strategy 2: DiceBear Fallback (If AI fails completely)
+        // Final fallback: Simple DiceBear bottts if everything failed
         if (!buffer) {
-            console.log("AI Generation failed, falling back to DiceBear");
-            const fallbackUrl = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodedPrompt}`;
-            const res = await fetch(fallbackUrl);
-            if (res.ok) {
-                buffer = await res.arrayBuffer();
-            } else {
+            console.log("Using final DiceBear fallback");
+            const finalFallback = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${randomSeed}`;
+            const res = await fetch(finalFallback);
+            if (!res.ok) {
                 throw new Error("All image generation strategies failed");
             }
+            buffer = await res.arrayBuffer();
         }
 
         const base64 = Buffer.from(buffer!).toString('base64');

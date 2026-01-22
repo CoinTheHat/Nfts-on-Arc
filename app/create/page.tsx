@@ -72,16 +72,54 @@ export default function Create() {
         setDeployError("");
 
         try {
-            // 1. Image URL Logic (SIMPLIFIED FOR HACKATHON)
-            // Use DiceBear directly - it's permanent, public, and deterministic
+            // 1. Image Upload Logic (WITH SUPABASE + DEBUG)
             let finalURI = "";
+            let imageSource = previewUrl;
 
-            if (previewUrl && previewUrl.startsWith('http') && previewUrl.includes('dicebear')) {
-                // User clicked "AI Generate" - use that DiceBear URL directly
-                finalURI = previewUrl;
-            } else {
-                // No AI generation or manual upload: create deterministic DiceBear URL
-                finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
+            if (!imageSource || (!imageSource.startsWith('http') && !imageSource.startsWith('blob'))) {
+                imageSource = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44,0f172a&shape1Color=f472b6,c084fc,818cf8&shape2Color=fbbf24,34d399,22d3ee&shape3Color=f87171,fb923c,facc15`;
+            }
+
+            console.log("[UPLOAD] Image source:", imageSource);
+
+            try {
+                const response = await fetch(imageSource);
+                const blob = await response.blob();
+                console.log("[UPLOAD] Fetched blob, size:", blob.size);
+
+                const fileToUpload = new File([blob], "collection-image.png", { type: "image/png" });
+                const uploadFormData = new FormData();
+                uploadFormData.append("file", fileToUpload);
+
+                console.log("[UPLOAD] Uploading to Supabase...");
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: uploadFormData,
+                });
+
+                console.log("[UPLOAD] Response status:", uploadRes.status);
+
+                if (!uploadRes.ok) {
+                    const errorText = await uploadRes.text();
+                    console.error("[UPLOAD] Failed:", errorText);
+                    throw new Error(`Upload failed: ${uploadRes.status}`);
+                }
+
+                const uploadData = await uploadRes.json();
+                finalURI = uploadData.url;
+                console.log("[UPLOAD] Success! URL:", finalURI);
+
+            } catch (uploadErr: any) {
+                console.error("[UPLOAD] Error:", uploadErr.message);
+
+                if (imageSource.startsWith('blob:')) {
+                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                } else if (imageSource.includes('dicebear')) {
+                    finalURI = imageSource;
+                } else {
+                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                }
+                console.log("[UPLOAD] Using fallback:", finalURI);
             }
 
             const baseURI = finalURI;

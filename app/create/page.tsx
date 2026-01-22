@@ -11,6 +11,7 @@ import NFTFactoryArtifact from "@/lib/NFTFactory.json";
 import { factoryAddress } from "@/lib/factoryAddress";
 import NFTImage from "@/components/NFTImage";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const Loader2 = ({ className }: { className?: string }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,6 +40,7 @@ export default function Create() {
     const [dragActive, setDragActive] = useState(false);
     const [deployError, setDeployError] = useState("");
     const [deployedAddress, setDeployedAddress] = useState("");
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // -- Handlers --
     const handleNext = () => {

@@ -87,23 +87,25 @@ export default function Create() {
             try {
                 let blob: Blob;
 
-                // Handle Base64 Data URLs (from AI generation)
+                // Handle Base64 Data URLs (from /api/generate)
                 if (imageSource.startsWith('data:')) {
                     console.log("[UPLOAD] Converting Base64 Data URL to Blob...");
                     const base64Data = imageSource.split(',')[1];
+                    const mimeType = imageSource.match(/data:([^;]+);/)?.[1] || 'image/png';
                     const byteCharacters = atob(base64Data);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    blob = new Blob([byteArray], { type: 'image/png' });
-                    console.log("[UPLOAD] Base64 converted to blob, size:", blob.size);
+                    blob = new Blob([byteArray], { type: mimeType });
+                    console.log("[UPLOAD] Converted Base64 to Blob, size:", blob.size);
                 } else {
-                    // Handle HTTP/HTTPS URLs and Blob URLs
+                    // Handle HTTP URLs or Blob URLs
+                    console.log("[UPLOAD] Fetching from URL...");
                     const response = await fetch(imageSource);
                     blob = await response.blob();
-                    console.log("[UPLOAD] Fetched blob from URL, size:", blob.size);
+                    console.log("[UPLOAD] Fetched blob, size:", blob.size);
                 }
 
                 const fileToUpload = new File([blob], "collection-image.png", { type: "image/png" });
@@ -131,14 +133,10 @@ export default function Create() {
             } catch (uploadErr: any) {
                 console.error("[UPLOAD] Error:", uploadErr.message);
 
-                if (imageSource.startsWith('blob:')) {
-                    finalURI = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
-                } else if (imageSource.includes('dicebear')) {
-                    finalURI = imageSource;
-                } else {
-                    finalURI = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(formData.name)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
-                }
-                console.log("[UPLOAD] Using fallback:", finalURI);
+                // IMPORTANT: Use the EXACT SAME seed/prompt as the preview to ensure consistency
+                const previewSeed = formData.name || "Fallback";
+                finalURI = `https://api.dicebear.com/9.x/bottts-neutral/png?seed=${encodeURIComponent(previewSeed)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                console.log("[UPLOAD] Using fallback with consistent seed:", finalURI);
             }
 
             const baseURI = finalURI;

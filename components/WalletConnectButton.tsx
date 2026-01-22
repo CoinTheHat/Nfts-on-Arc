@@ -15,7 +15,7 @@ export default function WalletConnectButton() {
     const chainId = useChainId();
     const isWrongNetwork = isConnected && chainId !== arcTestnet.id;
     const { switchChain } = useSwitchChain();
-    const { username } = useUsername(address);
+    const { username, avatarUrl } = useUsername(address);
 
     const [mounted, setMounted] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -73,9 +73,17 @@ export default function WalletConnectButton() {
                         ${dropdownOpen ? "ring-2 ring-primary/50 border-primary" : ""}
                     `}
                 >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-bold">
-                        {username ? username[0].toUpperCase() : "U"}
-                    </div>
+                    {avatarUrl ? (
+                        <img
+                            src={avatarUrl}
+                            alt={username || "User"}
+                            className="w-6 h-6 rounded-full object-cover border border-border"
+                        />
+                    ) : (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-bold">
+                            {username ? username[0].toUpperCase() : "U"}
+                        </div>
+                    )}
                     <div className="flex flex-col items-start gap-0.5">
                         <span className="text-sm font-medium text-white font-mono leading-none">
                             {username || formatAddress(address!)}

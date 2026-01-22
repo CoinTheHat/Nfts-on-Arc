@@ -3,24 +3,28 @@ import { supabase } from "./supabaseClient";
 
 export const useUsername = (address: string | undefined) => {
     const [username, setUsername] = useState<string | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const fetchUsername = async () => {
         if (!address) {
             setUsername(null);
+            setAvatarUrl(null);
             return;
         }
         setLoading(true);
         try {
             const { data } = await supabase
                 .from("profiles")
-                .select("username")
+                .select("username, avatar_url")
                 .eq("wallet_address", address.toLowerCase())
                 .single();
 
             setUsername(data?.username || null);
+            setAvatarUrl(data?.avatar_url || null);
         } catch (e) {
             setUsername(null);
+            setAvatarUrl(null);
         } finally {
             setLoading(false);
         }
@@ -30,7 +34,7 @@ export const useUsername = (address: string | undefined) => {
         fetchUsername();
     }, [address]);
 
-    return { username, loading, refetch: fetchUsername };
+    return { username, avatarUrl, loading, refetch: fetchUsername };
 };
 
 export const formatAddress = (address: string, username?: string | null) => {

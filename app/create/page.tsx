@@ -73,8 +73,17 @@ export default function Create() {
 
         try {
             // 1. Simulate Upload (In real app, upload to IPFS here)
-            // Using a default generic IPFS hash for hackathon unless we have a specific one
-            const baseURI = "ipfs://QmZ4tj_hackathon_mock_uri/";
+            // Hackathon: Use the previewUrl directly if it's an HTTP URL (like DiceBear), or fallback to a decent placeholder.
+            let finalURI = "ipfs://QmZ4tj_hackathon_mock_uri/";
+            if (previewUrl && previewUrl.startsWith('http')) {
+                finalURI = previewUrl;
+            } else if (previewUrl && previewUrl.startsWith('blob')) {
+                // Determine name for seed
+                const seedName = formData.name || "ArcCollection";
+                finalURI = `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(seedName)}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+            }
+
+            const baseURI = finalURI;
             await new Promise(r => setTimeout(r, 1000));
 
             // 2. Prepare Arguments for Factory

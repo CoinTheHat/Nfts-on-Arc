@@ -18,8 +18,8 @@ export async function POST(req: Request) {
         const randomSeed = Math.floor(Math.random() * 1000000);
 
         const candidates = [
-            `https://pollinations.ai/p/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`,
-            `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`
+            `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`,
+            `https://pollinations.ai/p/${encodedPrompt}?seed=${randomSeed}&width=512&height=512&nologo=true`
         ];
 
         let buffer: ArrayBuffer | null = null;
@@ -27,17 +27,26 @@ export async function POST(req: Request) {
         for (const url of candidates) {
             try {
                 console.log("Trying AI URL:", url);
+
+                // Create AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout for faster UX
+
                 const res = await fetch(url, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                    }
+                    },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
                     buffer = await res.arrayBuffer();
                     break;
                 }
             } catch (e) {
-                console.error("Failed candidate:", url);
+                console.error("Failed candidate:", url, e);
             }
         }
 

@@ -77,7 +77,7 @@ export default function Create() {
             // Hackathon: Use the previewUrl directly if it's an HTTP URL (like DiceBear).
             // If no preview or it's a blob (unsupported without backend), fallback to deterministic DiceBear.
             // This guarantees a valid image on the Mint Page.
-            let finalURI = `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+            let finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Arc")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
 
             if (previewUrl && previewUrl.startsWith('http')) {
                 finalURI = previewUrl;

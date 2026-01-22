@@ -108,8 +108,12 @@ export default function Create() {
             } catch (uploadErr) {
                 console.error("Image upload failed, falling back to direct URL", uploadErr);
                 // If upload fails (e.g. Supabase bucket not set up), fall back to the external URL
-                // This is a safety measure so deployment doesn't completely fail.
-                finalURI = imageSource;
+                // BUT if it's a blob url (local), we must fallback to a public placeholder.
+                if (imageSource && imageSource.startsWith('blob:')) {
+                    finalURI = `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(formData.name || "Fallback")}&backgroundColor=1e1e2e,2d2d44&shape1Color=f472b6,c084fc`;
+                } else {
+                    finalURI = imageSource;
+                }
             }
 
             const baseURI = finalURI;

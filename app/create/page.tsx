@@ -282,7 +282,7 @@ export default function Create() {
 
                                     <div className="grid grid-cols-2 gap-5">
                                         <Input
-                                            label="Price (ETH)"
+                                            label="Price (USDC)"
                                             placeholder="0.00"
                                             type="number"
                                             value={formData.price}
@@ -401,7 +401,7 @@ export default function Create() {
                                 <div className="flex items-center gap-4">
                                     <div className="hidden md:flex flex-col items-end text-xs mr-2">
                                         <span className="text-text-tertiary">Estimated Gas</span>
-                                        <span className="font-bold text-text-primary">~0.002 ETH</span>
+                                        <span className="font-bold text-text-primary">~0.002 USDC</span>
                                     </div>
                                     <Button size="lg" onClick={handleDeploy} variant="primary" className="shadow-lg shadow-primary/20">
                                         Deploy to Arc

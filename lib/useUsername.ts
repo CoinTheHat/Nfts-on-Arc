@@ -17,7 +17,7 @@ export const useUsername = (address: string | undefined) => {
             const { data } = await supabase
                 .from("profiles")
                 .select("username, avatar_url")
-                .eq("wallet_address", address.toLowerCase())
+                .ilike("wallet_address", address)
                 .single();
 
             setUsername(data?.username || null);

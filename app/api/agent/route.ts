@@ -136,8 +136,29 @@ export async function POST(req: Request) {
     try {
         const { query } = await req.json();
 
+
         // --- Specific Rule for "How to..." questions ---
         // often imply HELP or the specific verb following "to"
+
+        const lowerQuery = query.toLowerCase();
+
+        // 1. Scripted Overrides for Demo Reliability
+        if (lowerQuery.includes("help me find a collection") || lowerQuery.includes("find a collection")) {
+            await new Promise(r => setTimeout(r, 600));
+            return NextResponse.json({
+                text: "I can help with that! Navigating you to the Explore page where you can find the latest collections.",
+                action: { type: 'NAVIGATE', payload: '/explore' }
+            });
+        }
+
+        if (lowerQuery.includes("what is this platform") || lowerQuery.includes("what is arc")) {
+            await new Promise(r => setTimeout(r, 600));
+            return NextResponse.json({
+                text: "Arc NFTs is an AI-powered marketplace on the Arc Testnet. We help you create, discover, and trade NFTs with the help of an intelligent assistant.",
+                action: null
+            });
+        }
+
 
         let bestIntent = null;
         let bestScore = 0;

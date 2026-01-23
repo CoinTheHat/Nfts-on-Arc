@@ -24,11 +24,15 @@ export default function SearchBar() {
             if (query.startsWith("0x")) return;
 
             try {
-                const { data } = await supabase
+                console.log("Searching for:", query);
+                const { data, error } = await supabase
                     .from("profiles")
                     .select("username, wallet_address, avatar_url")
                     .ilike("username", `%${query}%`)
                     .limit(5);
+
+                if (error) console.error("Supabase search error:", error);
+                console.log("Search results:", data);
 
                 if (data) {
                     setSuggestions(data);

@@ -116,7 +116,7 @@ export default function CollectionPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-900/50 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm mb-12">
                     <div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Floor Price</p>
-                        <p className="text-2xl font-black text-white">{price} ARC</p>
+                        <p className="text-2xl font-black text-white">{price} USDC</p>
                     </div>
                     <div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Total Volume</p>
@@ -238,7 +238,7 @@ export default function CollectionPage() {
                                             <div className="bg-gray-900/50 rounded-lg p-2 flex justify-between items-end">
                                                 <div>
                                                     <span className="text-[10px] text-gray-500 uppercase font-bold">Price</span>
-                                                    <p className="text-sm font-bold text-white">{item.price} ARC</p>
+                                                    <p className="text-sm font-bold text-white">{item.price} USDC</p>
                                                 </div>
                                                 <button className="text-[10px] bg-primary/10 text-primary hover:bg-primary hover:text-white px-2 py-1 rounded transition-colors font-bold">
                                                     Buy

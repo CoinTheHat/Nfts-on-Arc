@@ -273,7 +273,9 @@ export default function Dashboard() {
                                             {/* Right: Actions */}
                                             <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0 pl-4 md:border-l border-border-subtle h-full justify-end">
                                                 <Link href={`/admin?collection=${project.addr}`}>
-                                                    <Button size="sm" variant="secondary" className="h-8 text-xs">Manage</Button>
+                                                    <Button size="sm" variant="secondary" className="h-8 text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-white">
+                                                        ⚙️ Manage & Withdraw
+                                                    </Button>
                                                 </Link>
                                                 <Link href={`/mint/${project.addr}`}>
                                                     <Button size="sm" variant="outline" className="h-8 w-8 p-0 flex items-center justify-center border-border-default hover:border-text-tertiary text-text-tertiary hover:text-text-primary">

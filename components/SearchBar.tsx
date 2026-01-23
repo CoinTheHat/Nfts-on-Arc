@@ -106,16 +106,18 @@ export default function SearchBar() {
             if (data) {
                 router.push(`/user/${data.wallet_address}`);
             } else {
-                // Fallback: Check if it matches a collection name in our (hypothetical) indexing? 
-                // For now, let's just alert nicely or show nothing.
-                alert("No user or collection found with that name.");
+                // If no user found, assume it is a collection search and redirect to Explore
+                console.log("User not found, redirecting to explore for collection search...");
+                router.push(`/explore?q=${encodeURIComponent(query.trim())}`);
             }
         } catch (e) {
             console.error(e);
-            alert("Search failed");
+            // Fallback to explore
+            router.push(`/explore?q=${encodeURIComponent(query.trim())}`);
         } finally {
             setSearching(false);
             setQuery("");
+            setShowSuggestions(false);
         }
     };
 
@@ -147,28 +149,55 @@ export default function SearchBar() {
             </form>
 
             {/* Suggestions Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
+            {showSuggestions && (suggestions.length > 0 || query.length >= 2) && (
                 <div className="absolute top-full left-0 w-full mt-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
-                    {suggestions.map((user) => (
-                        <div
-                            key={user.wallet_address}
-                            onClick={() => {
-                                router.push(`/user/${user.wallet_address}`);
-                                setQuery("");
-                                setShowSuggestions(false);
-                            }}
-                            className="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition-colors border-b border-gray-800/50 last:border-none"
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
-                                {user.avatar_url ? (
-                                    <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-sm">👤</div>
-                                )}
+
+                    {/* Profiles Section */}
+                    {suggestions.length > 0 && (
+                        <div className="py-2">
+                            <div className="px-4 py-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                Creators
                             </div>
-                            <span className="text-sm font-medium text-gray-200 truncate">{user.username}</span>
+                            {suggestions.map((user) => (
+                                <div
+                                    key={user.wallet_address}
+                                    onClick={() => {
+                                        router.push(`/user/${user.wallet_address}`);
+                                        setQuery("");
+                                        setShowSuggestions(false);
+                                    }}
+                                    className="px-4 py-2.5 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition-colors"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
+                                        {user.avatar_url ? (
+                                            <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-sm">👤</div>
+                                        )}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-200 truncate">{user.username}</span>
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    )}
+
+                    {/* Collections Fallback Section */}
+                    {query.length >= 2 && (
+                        <div className="border-t border-gray-800/50 py-1">
+                            <div
+                                onClick={handleSearch}
+                                className="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-3 transition-colors group"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-gray-200">Search "{query}" in Collections</span>
+                                    <span className="text-xs text-gray-500">View all matching collections</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

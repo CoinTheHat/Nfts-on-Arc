@@ -33,6 +33,14 @@ export const useUsername = (address: string | undefined) => {
 
     useEffect(() => {
         fetchUsername();
+
+        const handleUpdate = () => {
+            console.log("[useUsername] Profile update event received, refetching...");
+            fetchUsername();
+        };
+
+        window.addEventListener("profileUpdated", handleUpdate);
+        return () => window.removeEventListener("profileUpdated", handleUpdate);
     }, [address]);
 
     return { username, avatarUrl, loading, refetch: fetchUsername };

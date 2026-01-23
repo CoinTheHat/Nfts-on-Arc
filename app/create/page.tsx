@@ -501,7 +501,7 @@ export default function Create() {
                                                 <div className="mt-3 pt-3 border-t border-border-subtle flex justify-between items-center text-xs">
                                                     <div className="flex flex-col">
                                                         <span className="text-text-tertiary">Price</span>
-                                                        <span className="font-bold">{formData.price || "0"} ETH</span>
+                                                        <span className="font-bold">{formData.price || "0"} USDC</span>
                                                     </div>
                                                     <div className="flex items-center gap-1 text-success">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Active

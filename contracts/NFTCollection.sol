@@ -114,8 +114,8 @@ contract NFTCollection is ERC721A, Ownable {
         uint256 balance = address(this).balance;
         require(balance > 0, "No balance to withdraw");
 
-        // Calculate 0.5% platform fee
-        uint256 platformFee = (balance * 50) / 10000;
+        // Calculate 3% platform fee
+        uint256 platformFee = (balance * 300) / 10000;
         uint256 ownerAmount = balance - platformFee;
 
         // Send fee to platform

@@ -80,6 +80,10 @@ export default function Profile() {
             }
 
             toast("Profile updated!", "success");
+
+            // Notify other components (like TopNav) to refetch
+            window.dispatchEvent(new Event("profileUpdated"));
+
             refetch();
             setIsEditMode(false);
         } catch (error: any) {
@@ -388,7 +392,7 @@ export default function Profile() {
                                                                 <div className="pt-3 border-t border-border-subtle flex justify-between items-center">
                                                                     <div>
                                                                         <p className="text-[10px] text-text-tertiary uppercase font-bold">Price</p>
-                                                                        <p className="font-bold text-text-primary">{price} ARC</p>
+                                                                        <p className="font-bold text-text-primary">{price} USDC</p>
                                                                     </div>
                                                                     <Badge variant="outline" className="text-xs">
                                                                         View

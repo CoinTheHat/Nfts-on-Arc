@@ -24,7 +24,7 @@ export const Tabs = ({ tabs, activeTab, onChange, className = "" }: TabsProps) =
                         onClick={() => onChange(tab.id)}
                         className={`
               relative pb-4 text-sm font-medium transition-colors whitespace-nowrap
-              ${isActive ? "text-white" : "text-gray-500 hover:text-gray-300"}
+              ${isActive ? "text-primary font-bold" : "text-gray-500 hover:text-gray-300"}
             `}
                     >
                         <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export const Tabs = ({ tabs, activeTab, onChange, className = "" }: TabsProps) =
                             {tab.count !== undefined && (
                                 <span className={`
                   text-xs px-2 py-0.5 rounded-full 
-                  ${isActive ? "bg-white/10 text-white" : "bg-gray-800 text-gray-400"}
+                  ${isActive ? "bg-primary text-white" : "bg-gray-200 text-gray-500"}
                 `}>
                                     {tab.count}
                                 </span>

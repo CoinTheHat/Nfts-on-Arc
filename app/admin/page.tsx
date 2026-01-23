@@ -114,7 +114,7 @@ function AdminContent() {
                         </Card>
                         <Card className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Balance</h3>
-                            <p className="text-2xl font-bold text-white">-- ETH</p>
+                            <p className="text-2xl font-bold text-white">-- USDC</p>
                             <p className="text-xs text-gray-500">Contract Balance</p>
                         </Card>
                     </div>
@@ -137,7 +137,7 @@ function AdminContent() {
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <h3 className="font-bold text-white">Withdraw Revenue</h3>
-                                            <p className="text-sm text-gray-400 mt-1">Transfer all accumulated ETH/ARC to your wallet.</p>
+                                            <p className="text-sm text-gray-400 mt-1">Transfer all accumulated USDC to your wallet. (Includes 3% Platform Fee)</p>
                                         </div>
                                         <div className="p-3 bg-green-500/10 rounded-lg text-green-500">
                                             💸

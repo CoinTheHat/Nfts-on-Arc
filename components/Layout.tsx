@@ -108,7 +108,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     const { address, isConnected } = useAccount();
     const { connect } = useConnect();
     const { disconnect } = useDisconnect();
-    const { username } = useUsername(address);
+    const { username, avatarUrl } = useUsername(address);
     const pathname = usePathname();
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -137,7 +137,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                                 {/* Core Triangle */}
                                 <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-primary relative z-10" />
                             </div>
-                            <span className="text-xl font-bold tracking-[0.02em] text-primary font-sans">ARC</span>
+                            <span className="text-xl font-bold tracking-[0.02em] text-primary font-sans whitespace-nowrap">ARC NFTs</span>
                         </Link>
 
                         <nav className="hidden md:flex items-center gap-2">
@@ -207,8 +207,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                                         className="flex items-center gap-2 pl-1 pr-2 cursor-pointer hover:bg-black/5 rounded-full transition-colors py-1"
                                         onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-xs text-white font-bold border-2 border-white shadow-sm">
-                                            {username ? username[0].toUpperCase() : "👤"}
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-xs text-white font-bold border-2 border-white shadow-sm overflow-hidden relative">
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt={username || "User"} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span>{username ? username[0].toUpperCase() : "👤"}</span>
+                                            )}
                                         </div>
                                         <span className="text-sm font-bold text-text-primary max-w-[100px] truncate">
                                             {username || "User"}

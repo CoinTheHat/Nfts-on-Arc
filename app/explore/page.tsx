@@ -19,8 +19,12 @@ import { Button } from "@/components/ui/Button";
 import { Sheet, SheetTrigger } from "@/components/ui/Sheet";
 import { supabase } from "@/lib/supabaseClient";
 
+import { useSearchParams } from "next/navigation";
+
 export default function Explore() {
-    const [searchTerm, setSearchTerm] = useState("");
+    const searchParams = useSearchParams();
+    const initialQuery = searchParams.get("q") || "";
+    const [searchTerm, setSearchTerm] = useState(initialQuery);
     const [statusFilter, setStatusFilter] = useState("all");
     const [sortType, setSortType] = useState("newest");
     const [mounted, setMounted] = useState(false);

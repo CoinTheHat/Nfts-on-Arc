@@ -764,8 +764,8 @@
       "artifacts": []
     },
     "C:\\Users\\atknl\\Desktop\\Arc\\contracts\\NFTCollection.sol": {
-      "lastModificationDate": 1764461928904,
-      "contentHash": "49429b40b65ca59e37521aebecbf152d",
+      "lastModificationDate": 1769203216725,
+      "contentHash": "430eb50e96c875b99d83ffce1c129a97",
       "sourceName": "contracts/NFTCollection.sol",
       "solcConfig": {
         "version": "0.8.20",

@@ -30,8 +30,8 @@ export default function TopNav() {
         <>
             <header
                 className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 border-b ${scrolled || mobileMenuOpen
-                        ? "bg-background/80 backdrop-blur-xl border-border shadow-lg"
-                        : "bg-background/50 backdrop-blur-sm border-transparent"
+                    ? "bg-background/80 backdrop-blur-xl border-border shadow-lg"
+                    : "bg-background/50 backdrop-blur-sm border-transparent"
                     }`}
             >
                 <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-4">
@@ -42,8 +42,8 @@ export default function TopNav() {
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg group-hover:shadow-blue-500/20 group-hover:scale-105 transition-all">
                                 A
                             </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:text-white transition-colors">
-                                Arc Launchpad
+                            <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:text-white transition-colors whitespace-nowrap">
+                                Arc NFTs
                             </span>
                         </Link>
                         <Badge variant="secondary" className="hidden lg:inline-flex text-[10px] py-0.5 px-2 bg-purple-500/10 text-purple-300 border-purple-500/20 tracking-wider font-mono">
